@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Api\AiApi;
+use App\Api\InvalidScriptException;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use App\Model\Ai;
@@ -65,7 +66,13 @@ class WatchCommand extends Command
 
         $this->watcher->watch()->onModify(function (ResourceInterface $resource, string $path) use ($io, $ais) {
             $ai = $ais[$path];
-            $io->text("<info>{$ai->getPath()}</info> changed");
+
+            try {
+                $ais[$path] = $this->aiApi->saveAi($ai, file_get_contents($path))->wait();
+                $io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
+            } catch (InvalidScriptException $exception) {
+                $io->text("<error>{$ai->getPath()}</error> {$exception->getPosition()} {$exception->getError()}");
+            }
         });
 
         $io->section("Starting watch on $this->scriptsDir");

@@ -58,6 +58,32 @@ class AiApi
             });
     }
 
+    public function saveAi(Ai $ai, string $code): PromiseInterface
+    {
+        $token = $this->tokenStorage->getToken();
+
+        $data = [
+            'ai_id' => $ai->getId(),
+            'code' => $code,
+            'token' => $token,
+        ];
+
+        return $this->client->postAsync("/api/ai/save/", ['body' => http_build_query($data)])
+            ->then(function (Response $response) use ($code, $ai) {
+                $response = json_decode($response->getBody()->getContents())->result[0];
+
+                if (count($response) === 3) {
+                    $ai->setCode($code);
+
+                    return $ai;
+                }
+
+                [,,, $line, $column,, $error] = $response;
+
+                throw new InvalidScriptException($line, $column, $error);
+            });
+    }
+
     public function getTree(Folder $root)
     {
         $root->setAis(
