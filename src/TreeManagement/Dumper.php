@@ -4,7 +4,6 @@ namespace App\TreeManagement;
 
 use App\Model\Ai;
 use App\Model\Folder;
-use Diff;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Dumper
@@ -12,50 +11,46 @@ class Dumper
     /**
      * @var string
      */
-    private $dir;
+    private $scriptsDir;
 
     /**
      * @var Filesystem
      */
     private $fileSystem;
 
-    public function __construct(string $dir, string $projectDir)
+    public function __construct(string $scriptsDir)
     {
-        $this->dir = substr($dir, 0, 1) === '/' ? $dir : "$projectDir/$dir";
+        $this->scriptsDir = $scriptsDir;
         $this->fileSystem = new Filesystem();
     }
 
     /**
      * @throws ConflictException
      */
-    public function dump(Folder $folder, $parentPath = '')
+    public function dump(Folder $folder)
     {
-        $path = 0 !== $folder->getId() ? "$parentPath/{$folder->getName()}" : '';
-
-        $this->createDir($path);
+        $this->createDir($folder);
 
         foreach ($folder->getFolders() as $child) {
-            $this->dump($child, $path);
+            $this->dump($child);
         }
 
         foreach ($folder->getAis() as $ai) {
-            $this->createFile($ai, $path);
+            $this->createFile($ai);
         }
     }
 
-    private function createDir(string $path)
+    private function createDir(Folder $folder)
     {
-        $path = "{$this->dir}{$path}";
-
-        $this->fileSystem->mkdir($path);
+        $this->fileSystem->mkdir("{$this->scriptsDir}{$folder->getPath()}");
     }
 
     /**
      * @throws ConflictException
      */
-    private function createFile(Ai $ai, string $path)
+    private function createFile(Ai $ai)
     {
-        $path = "{$this->dir}{$path}/{$ai->getName()}.lks";
+        $path = "{$this->scriptsDir}{$ai->getPath()}";
 
         if (!$this->fileSystem->exists($path)) {
             $this->fileSystem->dumpFile($path, $ai->getCode());

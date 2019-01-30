@@ -63,7 +63,9 @@ class AiApi
         $root->setAis(
             Collection::from($root->getAis())
                 ->map(function (Ai $ai) {
-                    return $this->getAI($ai->getId())->wait();
+                    $ai->setCode($this->getAI($ai->getId())->wait()->getCode());
+
+                    return $ai;
                 })
                 ->toArray()
         );

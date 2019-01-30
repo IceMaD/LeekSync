@@ -25,13 +25,30 @@ class Builder
         }
 
         foreach ($folders as $folder) {
-            if ($folder->getFolder() === null) {
+            $id = $folder->getFolder();
+
+            if ($id === null) {
                 continue;
             }
 
-            $folders[$folder->getFolder()]->addFolder($folder);
+            $folders[$id]->addFolder($folder);
         }
 
         return $folders[0];
+    }
+
+    public static function flattenTree(Folder $tree)
+    {
+        $ais = [];
+
+        foreach ($tree->getAis() as $ai) {
+            $ais[] = $ai;
+        }
+
+        foreach ($tree->getFolders() as $folder) {
+            $ais = array_merge($ais, self::flattenTree($folder));
+        }
+
+        return $ais;
     }
 }

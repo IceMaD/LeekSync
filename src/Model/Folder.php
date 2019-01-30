@@ -70,6 +70,22 @@ class Folder
     }
 
     /**
+     * @return null|string
+     */
+    public function getPath(): ?string
+    {
+        if ($this->id === 0) {
+            return '';
+        }
+
+        if (!$this->folder instanceof Folder) {
+            return null;
+        }
+
+        return "{$this->folder->getPath()}/{$this->getName()}";
+    }
+
+    /**
      * @return Folder|int
      */
     public function getFolder()
@@ -132,6 +148,7 @@ class Folder
     public function addFolder(Folder $folder)
     {
         $this->folders[] = $folder;
+        $folder->setFolder($this);
 
         return $this;
     }
@@ -139,6 +156,7 @@ class Folder
     public function addAi(Ai $ai)
     {
         $this->ais[] = $ai;
+        $ai->setFolder($this);
 
         return $this;
     }

@@ -8,25 +8,13 @@ use App\Api\UserApi;
 use App\TreeManagement\Builder;
 use App\TreeManagement\ConflictException;
 use App\TreeManagement\Dumper;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Filesystem\Filesystem;
 
 class FetchCommand extends Command
 {
     protected static $defaultName = 'app:fetch';
-
-    /**
-     * @var UserApi
-     */
-    private $userAPI;
-
-    /**
-     * @var TokenStorage
-     */
-    private $tokenStorage;
 
     /**
      * @var AiApi
@@ -38,11 +26,10 @@ class FetchCommand extends Command
      */
     private $dumper;
 
-    public function __construct(UserApi $userAPI, TokenStorage $tokenStorage, AiApi $aiApi, Dumper $dumper)
+    public function __construct(UserApi $userApi, TokenStorage $tokenStorage, AiApi $aiApi, Dumper $dumper)
     {
-        parent::__construct(null);
-        $this->userAPI = $userAPI;
-        $this->tokenStorage = $tokenStorage;
+        parent::__construct($userApi, $tokenStorage);
+
         $this->aiApi = $aiApi;
         $this->dumper = $dumper;
     }
@@ -55,12 +42,6 @@ class FetchCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
-
-        $login = getenv('APP_LOGIN') ?? $io->ask('Login');
-        $password = getenv('APP_PASSWORD') ?? $io->askHidden('Password');
-        $token = $this->userAPI->login($login, $password)->wait()->token;
-
-        $this->tokenStorage->setToken($token);
 
         $tree = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
 

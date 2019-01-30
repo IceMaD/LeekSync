@@ -110,6 +110,18 @@ class Ai
     }
 
     /**
+     * @return string
+     */
+    public function getPath(): ?string
+    {
+        if (!$this->folder instanceof Folder) {
+            return null;
+        }
+
+        return "{$this->folder->getPath()}/{$this->getName()}.lks";
+    }
+
+    /**
      * @return Folder|int
      */
     public function getFolder()
