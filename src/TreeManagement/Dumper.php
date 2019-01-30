@@ -24,20 +24,29 @@ class Dumper
         $this->fileSystem = new Filesystem();
     }
 
-    /**
-     * @throws ConflictException
-     */
-    public function dump(Folder $folder)
+    public function dump(Folder $folder, bool $force)
     {
+        $ais = [
+            'fetched' => [],
+            'conflicts' => [],
+        ];
+
         $this->createDir($folder);
 
         foreach ($folder->getFolders() as $child) {
-            $this->dump($child);
+            $ais = array_merge_recursive($ais, $this->dump($child, $force));
         }
 
         foreach ($folder->getAis() as $ai) {
-            $this->createFile($ai);
+            try {
+                $this->createFile($ai, $force);
+                $ais['fetched'][] = $ai;
+            } catch (ConflictException $exception) {
+                $ais['conflicts'][] = $exception;
+            }
         }
+
+        return $ais;
     }
 
     private function createDir(Folder $folder)
@@ -45,14 +54,11 @@ class Dumper
         $this->fileSystem->mkdir("{$this->scriptsDir}{$folder->getPath()}");
     }
 
-    /**
-     * @throws ConflictException
-     */
-    private function createFile(Ai $ai)
+    private function createFile(Ai $ai, bool $force)
     {
         $path = "{$this->scriptsDir}{$ai->getPath()}";
 
-        if (!$this->fileSystem->exists($path)) {
+        if (!$this->fileSystem->exists($path) || $force) {
             $this->fileSystem->dumpFile($path, $ai->getCode());
 
             return;
@@ -64,6 +70,6 @@ class Dumper
             return;
         }
 
-        throw new ConflictException($code, $ai, $path);
+        throw new ConflictException($code, $ai);
     }
 }

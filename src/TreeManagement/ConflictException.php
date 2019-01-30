@@ -12,27 +12,19 @@ class ConflictException extends \Exception
     private $diff;
 
     /**
-     * @var string
+     * @var Ai
      */
-    private $path;
+    private $ai;
 
-    public function __construct(string $code, Ai $ai, string $path)
+    public function __construct(string $code, Ai $ai)
     {
         parent::__construct('', 0, null);
 
         $this->diff = new \Diff(
-            explode("\n", $code),
-            explode("\n", $ai->getCode())
+            explode("\n", $ai->getCode()),
+            explode("\n", $code)
         );
-        $this->path = $path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
+        $this->ai = $ai;
     }
 
     /**
@@ -41,5 +33,13 @@ class ConflictException extends \Exception
     public function getDiffView()
     {
         return $this->diff->render(new \Diff_Renderer_Text_Unified());
+    }
+
+    /**
+     * @return Ai
+     */
+    public function getAi(): Ai
+    {
+        return $this->ai;
     }
 }
