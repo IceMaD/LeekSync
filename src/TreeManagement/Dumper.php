@@ -4,6 +4,7 @@ namespace App\TreeManagement;
 
 use App\Model\Ai;
 use App\Model\Folder;
+use Diff;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Dumper
@@ -24,6 +25,9 @@ class Dumper
         $this->fileSystem = new Filesystem();
     }
 
+    /**
+     * @throws ConflictException
+     */
     public function dump(Folder $folder, $parentPath = '')
     {
         $path = 0 !== $folder->getId() ? "$parentPath/{$folder->getName()}" : '';
@@ -46,10 +50,25 @@ class Dumper
         $this->fileSystem->mkdir($path);
     }
 
+    /**
+     * @throws ConflictException
+     */
     private function createFile(Ai $ai, string $path)
     {
         $path = "{$this->dir}{$path}/{$ai->getName()}.lks";
 
-        $this->fileSystem->dumpFile($path, $ai->getCode());
+        if (!$this->fileSystem->exists($path)) {
+            $this->fileSystem->dumpFile($path, $ai->getCode());
+
+            return;
+        }
+
+        $code = file_get_contents($path);
+
+        if ($code === $ai->getCode()) {
+            return;
+        }
+
+        throw new ConflictException($code, $ai, $path);
     }
 }

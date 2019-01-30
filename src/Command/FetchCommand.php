@@ -6,6 +6,7 @@ use App\Api\AiApi;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use App\TreeManagement\Builder;
+use App\TreeManagement\ConflictException;
 use App\TreeManagement\Dumper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -63,7 +64,14 @@ class FetchCommand extends Command
 
         $tree = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
 
-        $this->dumper->dump($this->aiApi->getTree($tree));
+        try {
+            $this->dumper->dump($this->aiApi->getTree($tree));
+        } catch (ConflictException $exception) {
+            $io->error("Conflict on {$exception->getPath()}");
+            $io->text($exception->getDiffView());
+
+            return;
+        }
 
         $io->success('You have a successfully fetched all your scripts');
     }
