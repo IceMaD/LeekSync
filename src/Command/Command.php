@@ -2,12 +2,14 @@
 
 namespace App\Command;
 
+use App\Api\RequestFailedException;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Process\Process;
 
 abstract class Command extends \Symfony\Component\Console\Command\Command
 {
@@ -38,9 +40,35 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         $outputStyle = new OutputFormatterStyle('red', null, ['bold']);
         $output->getFormatter()->setStyle('error', $outputStyle);
 
-        $login = getenv('APP_LOGIN') ? getenv('APP_LOGIN') : $io->ask('Login');
-        $password = getenv('APP_PASSWORD') ? getenv('APP_PASSWORD') : $io->askHidden('Password');
-        $token = $this->userApi->login($login, $password)->wait()->getToken();
+        $envLogin = getenv('APP_LOGIN') ? getenv('APP_LOGIN') : null;
+        $envPassword = getenv('APP_PASSWORD') ? getenv('APP_PASSWORD') : null;
+
+        $token = false;
+        $login = null;
+
+        if ($envLogin && $envPassword) {
+            try {
+                $login = $envLogin;
+                $password = $envPassword;
+
+                $token = $this->userApi->login($login, $password)->wait()->getToken();
+            } catch (\Exception $exception) {
+                $io->error('The credentials provided in the .env are invalid');
+
+                die;
+            }
+        } else {
+            do {
+                try {
+                    $login = $io->ask('Login', $login ?? $envLogin);
+                    $password = $io->askHidden('Password');
+
+                    $token = $this->userApi->login($login, $password)->wait()->getToken();
+                } catch (\Exception $exception) {
+                    $io->error('Invalid credentials');
+                }
+            } while (!$token);
+        }
 
         $this->tokenStorage->setToken($token);
     }
