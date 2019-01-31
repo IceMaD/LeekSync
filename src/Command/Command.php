@@ -38,8 +38,8 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         $outputStyle = new OutputFormatterStyle('red', null, ['bold']);
         $output->getFormatter()->setStyle('error', $outputStyle);
 
-        $login = getenv('APP_LOGIN') ?? $io->ask('Login');
-        $password = getenv('APP_PASSWORD') ?? $io->askHidden('Password');
+        $login = getenv('APP_LOGIN') ? getenv('APP_LOGIN') : $io->ask('Login');
+        $password = getenv('APP_PASSWORD') ? getenv('APP_PASSWORD') : $io->askHidden('Password');
         $token = $this->userApi->login($login, $password)->wait()->token;
 
         $this->tokenStorage->setToken($token);
