@@ -55,10 +55,17 @@ Pour ce faire, créez un fichier nommé `.env.local` à coté du fichier `.env`.
 
 Dans ce fichier, vous pouvez configurer 4 paramètres :
 
-- **APP_LOGIN** Votre nom de compte (pour éviter de le retaper à chaque fois, vous pouvez le renseigner même si vous ne remplissez pas le paramètre APP_PASSWORD)
-- **APP_PASSWORD** Votre mot de passe (pour éviter de le retaper à chaque fois)
-- **APP_FILE_EXTENSION** L'extension que vous voulez utiliser pour les fichiers locaux (défaut: js)
-- **APP_SCRIPTS_DIR** Le dossier de votre PC dans lequel vous voulez que vos scripts soient copiés
+**APP_LOGIN**     
+Votre nom de compte (pour éviter de le retaper à chaque fois, vous pouvez le renseigner même si vous ne remplissez pas le paramètre APP_PASSWORD)
+
+**APP_PASSWORD**     
+Votre mot de passe (pour éviter de le retaper à chaque fois)
+
+**APP_FILE_EXTENSION**     
+L'extension que vous voulez utiliser pour les fichiers locaux (défaut: js)
+
+**APP_SCRIPTS_DIR**     
+Le dossier de votre PC dans lequel vous voulez que vos scripts soient copiés
 
 Exemple:
 
