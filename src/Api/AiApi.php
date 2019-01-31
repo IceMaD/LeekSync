@@ -6,6 +6,10 @@ use App\Model\Ai;
 use App\Model\Folder;
 use App\Response\GetAiResponse;
 use App\Response\GetFarmerAisResponse;
+use App\Response\PostAiChangeFolderResponse;
+use App\Response\PostAiDeleteResponse;
+use App\Response\PostAiNewResponse;
+use App\Response\PostAiRenameResponse;
 use App\Response\PostAiSaveResponse;
 use DusanKasan\Knapsack\Collection;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -52,7 +56,28 @@ class AiApi
             });
     }
 
-    public function saveAi(Ai $ai, string $code): PromiseInterface
+    public function createAi(Ai $ai)
+    {
+        $token = $this->tokenStorage->getToken();
+
+        $data = [
+            'folder_id' => $ai->getFolder()->getId(),
+            'v2' => 'false',
+            'token' => $token,
+        ];
+
+        return $this->client->postAsync('/api/ai/new/', [
+            'body' => http_build_query($data),
+            'class' => PostAiNewResponse::class,
+        ])
+            ->then(function (PostAiNewResponse $response) use ($ai) {
+                $ai->setId($response->getAi()->getId());
+
+                return $ai;
+            });
+    }
+
+    public function updateAiCode(Ai $ai, string $code): PromiseInterface
     {
         $token = $this->tokenStorage->getToken();
 
@@ -76,6 +101,67 @@ class AiApi
                 ['line' => $line, 'column' => $column, 'error' => $error] = $response->getError();
 
                 throw new InvalidScriptException($line, $column, $error);
+            });
+    }
+
+    public function renameAi(Ai $ai, string $name): PromiseInterface
+    {
+        $token = $this->tokenStorage->getToken();
+
+        $data = [
+            'ai_id' => $ai->getId(),
+            'new_name' => $name,
+            'token' => $token,
+        ];
+
+        return $this->client->postAsync('/api/ai/rename/', [
+            'body' => http_build_query($data),
+            'class' => PostAiRenameResponse::class,
+        ])
+            ->then(function (PostAiRenameResponse $response) use ($name, $ai) {
+                $ai->setName($name);
+
+                return $ai;
+            });
+    }
+
+    public function deleteAi(Ai $ai): PromiseInterface
+    {
+        $token = $this->tokenStorage->getToken();
+
+        $data = [
+            'ai_id' => $ai->getId(),
+            'token' => $token,
+        ];
+
+        return $this->client->postAsync('/api/ai/delete/', [
+            'body' => http_build_query($data),
+            'class' => PostAiDeleteResponse::class,
+        ])
+            ->then(function () use ($ai) {
+                $ai->getFolder()->removeAi($ai);
+            });
+    }
+
+    public function changeFolder(Ai $ai, Folder $folder)
+    {
+        $token = $this->tokenStorage->getToken();
+
+        $data = [
+            'ai_id' => $ai->getId(),
+            'folder_id' => $folder->getId(),
+            'token' => $token,
+        ];
+
+        return $this->client->postAsync('/api/ai/change-folder/', [
+            'body' => http_build_query($data),
+            'class' => PostAiChangeFolderResponse::class,
+        ])
+            ->then(function (PostAiChangeFolderResponse $response) use ($ai, $folder) {
+                $ai->getFolder()->removeAi($ai);
+                $folder->addAi($ai);
+
+                return $ai;
             });
     }
 

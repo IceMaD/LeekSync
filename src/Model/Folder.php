@@ -82,7 +82,7 @@ class Folder
             return null;
         }
 
-        return "{$this->folder->getPath()}/{$this->getName()}";
+        return $this->folder->getPath().DIRECTORY_SEPARATOR.$this->getName();
     }
 
     /**
@@ -153,10 +153,28 @@ class Folder
         return $this;
     }
 
+    public function removeFolder(Folder $folderToRemove)
+    {
+        $this->folders = array_filter($this->folders, function (Folder $folder) use ($folderToRemove) {
+            return $folder->getId() !== $folderToRemove->getId();
+        });
+
+        return $this;
+    }
+
     public function addAi(Ai $ai)
     {
         $this->ais[] = $ai;
         $ai->setFolder($this);
+
+        return $this;
+    }
+
+    public function removeAi(Ai $aiToRemove)
+    {
+        $this->ais = array_filter($this->ais, function (Ai $ai) use ($aiToRemove) {
+            return $ai->getId() !== $aiToRemove->getId();
+        });
 
         return $this;
     }

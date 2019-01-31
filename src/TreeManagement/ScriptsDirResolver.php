@@ -10,12 +10,15 @@ class ScriptsDirResolver
     {
         $scriptsDirPath = getenv('APP_SCRIPTS_DIR');
 
+        $separator = DIRECTORY_SEPARATOR;
+
+        // @TODO Handle Absolute path on Windows
         if (!$scriptsDirPath) {
-            $this->scriptsDir = "$projectDir/scripts";
-        } elseif (preg_match('/^\//', $scriptsDirPath)) {
+            $this->scriptsDir = $projectDir.DIRECTORY_SEPARATOR.'scripts';
+        } elseif (preg_match("/^\\{$separator}/", $scriptsDirPath)) {
             $this->scriptsDir = $scriptsDirPath;
         } else {
-            $this->scriptsDir = "$projectDir/$scriptsDirPath";
+            $this->scriptsDir = $projectDir.DIRECTORY_SEPARATOR.$scriptsDirPath;
         }
     }
 

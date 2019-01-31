@@ -55,12 +55,12 @@ class Dumper
         return $ais;
     }
 
-    private function createDir(Folder $folder)
+    public function createDir(Folder $folder)
     {
         $this->fileSystem->mkdir("{$this->scriptsDir}{$folder->getPath()}");
     }
 
-    private function createFile(Ai $ai, bool $force)
+    public function createFile(Ai $ai, bool $force)
     {
         $path = "{$this->scriptsDir}{$ai->getPath()}.{$this->extension}";
 

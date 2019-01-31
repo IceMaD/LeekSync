@@ -17,7 +17,7 @@ class Ai
     /**
      * @var boolean;
      */
-    private $valid;
+    private $valid = true;
 
     /**
      * @var string
@@ -118,7 +118,7 @@ class Ai
             return null;
         }
 
-        return "{$this->folder->getPath()}/{$this->getName()}";
+        return $this->folder->getPath().DIRECTORY_SEPARATOR.$this->getName();
     }
 
     /**

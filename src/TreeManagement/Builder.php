@@ -37,7 +37,7 @@ class Builder
         return $folders[0];
     }
 
-    public static function flattenTree(Folder $tree)
+    public static function flattenAis(Folder $tree)
     {
         $ais = [];
 
@@ -46,9 +46,20 @@ class Builder
         }
 
         foreach ($tree->getFolders() as $folder) {
-            $ais = array_merge($ais, self::flattenTree($folder));
+            $ais = array_merge($ais, self::flattenAis($folder));
         }
 
         return $ais;
+    }
+
+    public static function flattenFolders(Folder $tree)
+    {
+        $folders = [$tree];
+
+        foreach ($tree->getFolders() as $folder) {
+            $folders = array_merge($folders, self::flattenFolders($folder));
+        }
+
+        return $folders;
     }
 }

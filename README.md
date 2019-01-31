@@ -1,13 +1,25 @@
-LeekTools
-========
+# LeekTools
 
-Application en ligne de commande (utilisant [Symfony](https://symfony.com/)) pour synchroniser les fichiers IA locaux et [LeekWars](http://leekwars.com)
+Application en ligne de commande pour synchroniser les fichiers IA locaux et [LeekWars](http://leekwars.com)
+
+## Prérequis
 
 Pour utiliser cette application, vous devez avoir installé [PHP](http://php.net/) et [Composer](https://getcomposer.org/doc/00-intro.md) sur votre ordinateur.
 
-Une fois ces dépendances installées, clonez (ou téléchargez) ce projet, exécutez `composer install`, puis [Récuperez vo scripts](#recuperez-vos-scripts)
+/!\ 
+Attention : Pour le moment, je n'ai testé que sur Linux.
+Mac étant similaire, il ne devrais pas y avoir de problème. 
+Si quelqu'un peut faire des tests sous Windows et me dire si ça fonctionne, ce serait cool :)
 
-## Récupérer vos scripts
+## Pour commencer
+
+Pour installer toutes les dépendances:
+
+```bash
+composer install
+```
+
+## Récupérer mes scripts
 
 ```bash
 bin/console scripts:fetch
@@ -30,6 +42,12 @@ Et tous vos scripts devraient être dans le dossier `scripts` à l'intérieur de
 
 ## Commencer à travailler
 
+### Lancer l'observateur
+
+L'observateur est un script qui va observer votre dossier de scripts sur votre PC et répliquer tous les changements qu'il détecte sur le site de LeekWars.
+
+Il n'est pas capable de savoir quand des modifications ont été effectuées sur le site. Pour récupérer les scripts depuis le site, voir [Récuperer mes scripts](#rcuprer-mes-scripts)
+
 ```bash
 bin/console scripts:watch
 ```
@@ -47,6 +65,25 @@ Si votre code n'est pas valide, le résultat le montrera
 ![Aperçu de l'échec de la synchronisation](./doc/sync-failure.png)
 
 Ici, il me manque un ";" à la ligne 9 (29 ème caractère)
+
+### Opérations prises en compte
+
+Les opérations suivantes sont automatiquement synchronisées vers le site :
+
+- Création d'une IA
+- Suppression d'une IA
+- Modification du contenu d'une IA
+- Modification du nom d'une IA
+- Déplacement d'une IA d'un dossier à un autre dossier
+- Déplacement de plusieurs IAs d'un dossier à un autre dossier
+- Création d'un dossier (Le dossier n'est synchronisé qu'une fois qu'une IA est crée dedans)
+- Suppression d'un dossier (Et de toutes les IAs qui sont dedans)
+- Modification du nom d'un dossier
+- Déplacement d'un dossier dans un autre dossier
+
+Les opérations suivantes **NE SONT PAS** gérés (et feront planter le script) :
+
+- Déplacement de plusieurs dossiers d'un coup dans un autre dossier
 
 ## Personnaliser l'outils
 
@@ -75,3 +112,14 @@ APP_PASSWORD=M0N-M0T-D3-P4553-5UP3R-53CR3T
 APP_FILE_EXTENSION=lks
 APP_SCRIPTS_DIR=/home/icemad/scripts
 ```
+
+## Developpé avec
+
+* [Symfony](https://symfony.com/)
+* [LeekWars](https://leekwars.com/help/api)
+
+Et plus d'infos dans le composer.json
+
+## Versioning
+
+Pour le moment, c'est une alpha donc je ne versionne pas.
