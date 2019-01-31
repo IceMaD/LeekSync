@@ -17,7 +17,7 @@ class Client extends \GuzzleHttp\Client
     {
         $config['base_uri'] = 'https://leekwars.com:443/api';
         $config['headers'] = [
-            'User-Agent' => 'Guzzle LeekSync',
+            'User-Agent' => 'Guzzle LeekTools',
             'Content-Type' => 'application/x-www-form-urlencoded',
             'Accept' => 'application/json',
         ];

@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class FetchCommand extends Command
 {
-    protected static $defaultName = 'app:fetch';
+    protected static $defaultName = 'scripts:fetch';
 
     /**
      * @var AiApi

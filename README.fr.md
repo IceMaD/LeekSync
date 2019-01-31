@@ -1,4 +1,4 @@
-LeekSync
+LeekTools
 ========
 
 [English version](README.md)

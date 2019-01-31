@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class WatchCommand extends Command
 {
-    protected static $defaultName = 'app:watch';
+    protected static $defaultName = 'scripts:watch';
 
     /**
      * @var Watcher
