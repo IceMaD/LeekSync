@@ -34,7 +34,7 @@ Et tous vos scripts devraient être dans le dossier `scripts` à l'intérieur de
 bin/console scripts:watch
 ```
 
-Encore une fois, mettez vos identifiants (Si vous trouvez cela ennuyeux, voir [Stocker les identifiants](#stocker-les-identifiants)), vous devriez voir ce message:
+Encore une fois, mettez vos identifiants (Si vous trouvez cela ennuyeux, voir [Personnaliser l'outils](#personnaliser-loutils)), vous devriez voir ce message:
 
 ![Voir l'aperçu de départ](./doc/watch-start.png)
 
@@ -48,6 +48,23 @@ Si votre code n'est pas valide, le résultat le montrera
 
 Ici, il me manque un ";" à la ligne 9 (29 ème caractère)
 
-## Stocker les identifiants
+## Personnaliser l'outils
 
-Si vous trouvez ça ennuyant de taper vos identifiants tout le temps, vous pouvez les stocker dans le fichier `.env` à la racine du projet.
+Vous pouvez personnaliser l'outils en changeant la configuration.
+Pour ce faire, créez un fichier nommé `.env.local` à coté du fichier `.env`.
+
+Dans ce fichier, vous pouvez configurer 4 paramètres :
+
+- **APP_LOGIN** Votre nom de compte (pour éviter de le retaper à chaque fois, vous pouvez le renseigner même si vous ne remplissez pas le paramètre APP_PASSWORD)
+- **APP_PASSWORD** Votre mot de passe (pour éviter de le retaper à chaque fois)
+- **APP_FILE_EXTENSION** L'extension que vous voulez utiliser pour les fichiers locaux (défaut: js)
+- **APP_SCRIPTS_DIR** Le dossier de votre PC dans lequel vous voulez que vos scripts soient copiés
+
+Exemple:
+
+```dotenv
+APP_LOGIN=IceMaD
+APP_PASSWORD=M0N-M0T-D3-P4553-5UP3R-53CR3T
+APP_FILE_EXTENSION=lks
+APP_SCRIPTS_DIR=/home/icemad/scripts
+```
