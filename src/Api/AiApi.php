@@ -6,9 +6,9 @@ use App\Model\Ai;
 use App\Model\Folder;
 use App\Response\GetAiResponse;
 use App\Response\GetFarmerAisResponse;
+use App\Response\PostAiSaveResponse;
 use DusanKasan\Knapsack\Collection;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class AiApi
@@ -39,22 +39,16 @@ class AiApi
     {
         $token = $this->tokenStorage->getToken();
 
-        return $this->client->getAsync("/api/ai/get-farmer-ais/$token")
-            ->then(function (Response $response) {
-                return $this->serializer->deserialize($response->getBody()->getContents(), GetFarmerAisResponse::class, 'json');
-            });
+        return $this->client->getAsync("/api/ai/get-farmer-ais/$token", ['class' => GetFarmerAisResponse::class]);
     }
 
     public function getAI(int $id): PromiseInterface
     {
         $token = $this->tokenStorage->getToken();
 
-        return $this->client->getAsync("/api/ai/get/$id/$token")
-            ->then(function (Response $response) {
-                return $this
-                    ->serializer
-                    ->deserialize($response->getBody()->getContents(), GetAiResponse::class, 'json')
-                    ->getAi();
+        return $this->client->getAsync("/api/ai/get/$id/$token", ['class' => GetAiResponse::class])
+            ->then(function (GetAiResponse $response) {
+                return $response->getAi();
             });
     }
 
@@ -68,17 +62,18 @@ class AiApi
             'token' => $token,
         ];
 
-        return $this->client->postAsync("/api/ai/save/", ['body' => http_build_query($data)])
-            ->then(function (Response $response) use ($code, $ai) {
-                $response = json_decode($response->getBody()->getContents())->result[0];
-
-                if (count($response) === 3) {
+        return $this->client->postAsync('/api/ai/save/', [
+            'body' => http_build_query($data),
+            'class' => PostAiSaveResponse::class,
+        ])
+            ->then(function (PostAiSaveResponse $response) use ($code, $ai) {
+                if ($response->isAiValid()) {
                     $ai->setCode($code);
 
                     return $ai;
                 }
 
-                [,,, $line, $column,, $error] = $response;
+                ['line' => $line, 'column' => $column, 'error' => $error] = $response->getError();
 
                 throw new InvalidScriptException($line, $column, $error);
             });

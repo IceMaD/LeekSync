@@ -50,7 +50,7 @@ class FetchCommand extends Command
         $tree = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
 
         /**
-         * @var $ais Ai[][]|ConflictException[][]
+         * @var Ai[][]|ConflictException[][]
          */
         $ais = $this->dumper->dump($this->aiApi->getTree($tree), $input->getOption('force'));
 
@@ -79,7 +79,7 @@ class FetchCommand extends Command
         if (!empty($ais['conflicts'])) {
             $io->error([
                 'Some scripts had conflicts.',
-                'Fix them manually or use --force to override local data'
+                'Fix them manually or use --force to override local data',
             ]);
 
             return;
@@ -87,5 +87,4 @@ class FetchCommand extends Command
 
         $io->success('You have a successfully fetched all your scripts');
     }
-
 }

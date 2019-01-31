@@ -56,7 +56,7 @@ class WatchCommand extends Command
         $ais = Builder::flattenTree($tree);
 
         /**
-         * @var $ais Ai[]
+         * @var Ai[]
          */
         $ais = Collection::from($ais)
             ->indexBy(function (Ai $ai) {

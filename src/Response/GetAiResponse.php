@@ -4,7 +4,7 @@ namespace App\Response;
 
 use App\Model\Ai;
 
-class GetAiResponse
+class GetAiResponse extends Response
 {
     /**
      * @var Ai

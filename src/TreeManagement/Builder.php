@@ -11,7 +11,7 @@ class Builder
     public static function buildFolderTree(GetFarmerAisResponse $farmer)
     {
         /**
-         * @var $folders Folder[]
+         * @var Folder[]
          */
         $folders = Collection::from($farmer->getFolders())
             ->append((new Folder())->setId(0)->setName('root'))
@@ -27,7 +27,7 @@ class Builder
         foreach ($folders as $folder) {
             $id = $folder->getFolder();
 
-            if ($id === null) {
+            if (null === $id) {
                 continue;
             }
 

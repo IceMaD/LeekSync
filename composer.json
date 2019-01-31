@@ -6,6 +6,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "dusank/knapsack": "^10.0",
+        "friendsofphp/php-cs-fixer": "^2.14",
         "guzzlehttp/guzzle": "^6.3",
         "jasonlewis/resource-watcher": "^1.2",
         "phpspec/php-diff": "^1.1",

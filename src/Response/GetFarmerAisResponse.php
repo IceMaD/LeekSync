@@ -5,7 +5,7 @@ namespace App\Response;
 use App\Model\Ai;
 use App\Model\Folder;
 
-class GetFarmerAisResponse
+class GetFarmerAisResponse extends Response
 {
     /**
      * @var Ai[]

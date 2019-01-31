@@ -2,8 +2,9 @@
 
 namespace App\Api;
 
+use App\Response\PostLoginTokenResponse;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Response;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class UserApi
 {
@@ -12,9 +13,15 @@ class UserApi
      */
     private $client;
 
-    public function __construct(Client $client)
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    public function __construct(Client $client, SerializerInterface $serializer)
     {
         $this->client = $client;
+        $this->serializer = $serializer;
     }
 
     public function login($login, $password): PromiseInterface
@@ -24,10 +31,9 @@ class UserApi
             'password' => $password,
         ];
 
-        return $this->client->postAsync("/api/farmer/login-token/", ['body' => http_build_query($data)])
-            ->then(function (Response $response) {
-                // @TODO deserialize
-                return json_decode($response->getBody()->getContents());
-            });
+        return $this->client->postAsync('/api/farmer/login-token/', [
+            'body' => http_build_query($data),
+            'class' => PostLoginTokenResponse::class,
+        ]);
     }
 }

@@ -70,11 +70,11 @@ class Folder
     }
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getPath(): ?string
     {
-        if ($this->id === 0) {
+        if (0 === $this->id) {
             return '';
         }
 

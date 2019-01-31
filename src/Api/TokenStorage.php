@@ -5,7 +5,7 @@ namespace App\Api;
 class TokenStorage
 {
     /**
-     * @var null|string
+     * @var string|null
      */
     private $token;
 
