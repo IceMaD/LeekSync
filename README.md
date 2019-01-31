@@ -46,7 +46,7 @@ Si votre code n'est pas valide, le résultat le montrera
 
 ![Aperçu de l'échec de la synchronisation](./doc/sync-failure.png)
 
-Ici, il me manque un ";" à la ligne 84
+Ici, il me manque un ";" à la ligne 9 (29 ème caractère)
 
 ## Stocker les identifiants
 
