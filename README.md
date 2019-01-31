@@ -5,7 +5,7 @@ Application en ligne de commande (utilisant [Symfony](https://symfony.com/)) pou
 
 Pour utiliser cette application, vous devez avoir installé [PHP](http://php.net/) et [Composer](https://getcomposer.org/doc/00-intro.md) sur votre ordinateur.
 
-Une fois ces dépendances installées, clonez (ou téléchargez) ce projet et suivez ces étapes
+Une fois ces dépendances installées, clonez (ou téléchargez) ce projet, exécutez `composer install`, puis [Récuperez vo scripts](#recuperez-vos-scripts)
 
 ## Récupérer vos scripts
 
