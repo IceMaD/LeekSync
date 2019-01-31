@@ -118,7 +118,7 @@ class Ai
             return null;
         }
 
-        return "{$this->folder->getPath()}/{$this->getName()}.lks";
+        return "{$this->folder->getPath()}/{$this->getName()}";
     }
 
     /**

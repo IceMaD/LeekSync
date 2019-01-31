@@ -18,9 +18,15 @@ class Dumper
      */
     private $fileSystem;
 
+    /**
+     * @var string
+     */
+    private $extension;
+
     public function __construct(string $scriptsDir)
     {
         $this->scriptsDir = $scriptsDir;
+        $this->extension = getenv('APP_FILE_EXTENSION');
         $this->fileSystem = new Filesystem();
     }
 
@@ -56,7 +62,7 @@ class Dumper
 
     private function createFile(Ai $ai, bool $force)
     {
-        $path = "{$this->scriptsDir}{$ai->getPath()}";
+        $path = "{$this->scriptsDir}{$ai->getPath()}.{$this->extension}";
 
         if (!$this->fileSystem->exists($path) || $force) {
             $this->fileSystem->dumpFile($path, $ai->getCode());

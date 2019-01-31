@@ -34,6 +34,11 @@ class WatchCommand extends Command
      */
     private $scriptsDir;
 
+    /**
+     * @var string
+     */
+    private $extension;
+
     public function __construct(UserApi $userApi, TokenStorage $tokenStorage, AiApi $aiApi, Watcher $watcher, string $scriptsDir)
     {
         parent::__construct($userApi, $tokenStorage);
@@ -41,6 +46,7 @@ class WatchCommand extends Command
         $this->watcher = $watcher;
         $this->aiApi = $aiApi;
         $this->scriptsDir = $scriptsDir;
+        $this->extension = getenv('APP_FILE_EXTENSION');
     }
 
     protected function configure()
@@ -60,7 +66,7 @@ class WatchCommand extends Command
          */
         $ais = Collection::from($ais)
             ->indexBy(function (Ai $ai) {
-                return "{$this->scriptsDir}{$ai->getPath()}";
+                return "{$this->scriptsDir}{$ai->getPath()}.{$this->extension}";
             })
             ->toArray();
 
