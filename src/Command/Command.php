@@ -2,14 +2,12 @@
 
 namespace App\Command;
 
-use App\Api\RequestFailedException;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Process\Process;
 
 abstract class Command extends \Symfony\Component\Console\Command\Command
 {
