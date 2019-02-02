@@ -6,6 +6,7 @@ use App\Model\Ai;
 use App\Model\Folder;
 use App\TreeManagement\Builder;
 use DusanKasan\Knapsack\Collection;
+use DusanKasan\Knapsack\Exceptions\ItemNotFound;
 
 class FileRegistry
 {
@@ -52,7 +53,11 @@ class FileRegistry
 
     public function fetchAi(string $path): Ai
     {
-        return $this->ais->get($path);
+        try {
+            return $this->ais->get($path);
+        } catch (ItemNotFound $exception) {
+            throw new \Exception("Unable to find AI $path");
+        }
     }
 
     public function pushAi(Ai $ai)
@@ -77,9 +82,18 @@ class FileRegistry
             });
     }
 
+    public function hasFolder(string $path): bool
+    {
+        return $this->folders->has($path);
+    }
+
     public function fetchFolder(string $path): Folder
     {
-        return $this->folders->get($path);
+        try {
+            return $this->folders->get($path);
+        } catch (ItemNotFound $exception) {
+            throw new \Exception("Unable to find folder $path");
+        }
     }
 
     public function pushFolder(Folder $folder)

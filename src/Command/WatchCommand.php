@@ -15,7 +15,6 @@ use App\Watch\Deferred;
 use App\Watch\FileRegistry;
 use App\Watch\Pool;
 use App\Watch\Watcher;
-use DusanKasan\Knapsack\Collection;
 use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -178,7 +177,7 @@ class WatchCommand extends Command
     {
         [$folderPath, $name] = $this->guessPathParts($path);
 
-        if (!isset($this->foldersRegister[$folderPath])) {
+        if (!$this->registry->hasFolder($folderPath)) {
             $this->createFolder($folderPath);
         }
 
@@ -272,7 +271,7 @@ class WatchCommand extends Command
         $deletion = new Deferred(function () use ($path) {
             [$folderPath] = $this->guessPathParts($path);
 
-            if (!file_exists($folderPath) && isset($this->foldersRegister[$folderPath])) {
+            if (!file_exists($folderPath) && $this->registry->hasFolder($folderPath)) {
                 $folder = $this->registry->fetchFolder($folderPath);
 
                 $this->folderApi->deleteFolder($folder)->wait();
@@ -303,9 +302,6 @@ class WatchCommand extends Command
             $updatesCount = count($this->scheduledUpdates);
 
             if ($deletionsCount != $updatesCount) {
-                dump($this->scheduledDeletions);
-                dump($this->scheduledUpdates);
-
                 throw new \Exception('Something bad happened, please report what you did on github');
             }
 
