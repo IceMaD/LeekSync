@@ -12,6 +12,7 @@ use App\Model\Folder;
 use App\TreeManagement\Builder;
 use App\TreeManagement\Dumper;
 use App\Watch\Deferred;
+use App\Watch\FileRegistry;
 use App\Watch\Pool;
 use App\Watch\Watcher;
 use DusanKasan\Knapsack\Collection;
@@ -70,16 +71,6 @@ class WatchCommand extends Command
     private $dumper;
 
     /**
-     * @var Ai[]
-     */
-    private $aisRegister;
-
-    /**
-     * @var Folder[]
-     */
-    private $foldersRegister;
-
-    /**
      * @var SymfonyStyle
      */
     private $io;
@@ -89,12 +80,18 @@ class WatchCommand extends Command
      */
     private $folderApi;
 
+    /**
+     * @var FileRegistry
+     */
+    private $registry;
+
     public function __construct(
         UserApi $userApi,
         TokenStorage $tokenStorage,
         AiApi $aiApi,
         FolderApi $folderApi,
         Dumper $dumper,
+        FileRegistry $registry,
         Watcher $watcher,
         string $scriptsDir
     ) {
@@ -108,6 +105,7 @@ class WatchCommand extends Command
         $this->updatesPool = new Pool();
         $this->dumper = $dumper;
         $this->folderApi = $folderApi;
+        $this->registry = $registry;
     }
 
     protected function configure()
@@ -119,19 +117,7 @@ class WatchCommand extends Command
     {
         parent::initialize($input, $output);
 
-        $tree = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
-
-        $this->aisRegister = Collection::from(Builder::flattenAis($tree))
-            ->indexBy(function (Ai $ai) {
-                return $this->getRegisterPath($ai);
-            })
-            ->toArray();
-
-        $this->foldersRegister = Collection::from(Builder::flattenFolders($tree))
-            ->indexBy(function (Folder $folder) {
-                return $this->getRegisterPath($folder);
-            })
-            ->toArray();
+        $this->registry->init(Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait()));
 
         $this->io = new SymfonyStyle($input, $output);
     }
@@ -159,10 +145,11 @@ class WatchCommand extends Command
         });
 
         $listener->onModify(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
-            $ai = $this->aisRegister[$path];
+            $ai = $this->registry->fetchAi($path);
 
             try {
-                $this->aisRegister[$path] = $this->aiApi->updateAiCode($ai, file_get_contents($path))->wait();
+                $this->registry->moveAi($this->aiApi->updateAiCode($ai, file_get_contents($path))->wait(), $path);
+
                 $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
             } catch (InvalidScriptException $exception) {
                 $this->io->text("<error>{$ai->getPath()}</error> {$exception->getPosition()} {$exception->getError()}");
@@ -197,13 +184,12 @@ class WatchCommand extends Command
 
         $ai = (new Ai())
             ->setCode(file_get_contents($path))
-            ->setFolder($this->foldersRegister[$folderPath]);
+            ->setFolder($this->registry->fetchFolder($folderPath));
 
         $ai = $this->aiApi->createAi($ai)->wait();
         $ai = $this->aiApi->updateAiCode($ai, $ai->getCode())->wait();
         $ai = $this->aiApi->renameAi($ai, $name)->wait();
-
-        $this->aisRegister[$this->getRegisterPath($ai)] = $ai;
+        $this->registry->pushAi($ai);
 
         $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
     }
@@ -217,12 +203,12 @@ class WatchCommand extends Command
         }
 
         $folder = (new Folder())
-            ->setFolder($this->foldersRegister[$parentFolderPath]);
+            ->setFolder($this->registry->fetchFolder($parentFolderPath));
 
         $folder = $this->folderApi->createFolder($folder)->wait();
         $folder = $this->folderApi->renameFolder($folder, $name)->wait();
 
-        $this->foldersRegister[$this->getRegisterPath($folder)] = $folder;
+        $this->registry->pushFolder($folder);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully created !");
     }
@@ -231,11 +217,10 @@ class WatchCommand extends Command
     {
         [, $name] = $this->guessPathParts($path);
 
-        $ai = $this->aisRegister[$fromPath];
+        $ai = $this->registry->fetchAi($fromPath);
 
         $ai = $this->aiApi->renameAi($ai, $name)->wait();
-        unset($this->aisRegister[$fromPath]);
-        $this->aisRegister[$this->getRegisterPath($ai)] = $ai;
+        $this->registry->moveAi($ai, $fromPath);
 
         $this->io->text("<info>{$ai->getPath()}</info> Successfully renamed !");
     }
@@ -244,11 +229,10 @@ class WatchCommand extends Command
     {
         [$folderPath, $name] = $this->extractFolderRename($fromPath, $path);
 
-        $folder = $this->foldersRegister[$folderPath];
+        $folder = $this->registry->fetchFolder($folderPath);
 
         $folder = $this->folderApi->renameFolder($folder, $name)->wait();
-        unset($this->foldersRegister[$fromPath]);
-        $this->foldersRegister[$this->getRegisterPath($folder)] = $folder;
+        $this->registry->moveFolder($folder, $fromPath);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully renamed !");
     }
@@ -261,26 +245,22 @@ class WatchCommand extends Command
             $this->createFolder($folderPath);
         }
 
-        $ai = $this->aisRegister[$fromPath];
-
-        $folder = $this->foldersRegister[$folderPath];
+        $ai = $this->registry->fetchAi($fromPath);
+        $folder = $this->registry->fetchFolder($folderPath);
 
         $ai = $this->aiApi->changeFolder($ai, $folder)->wait();
-
-        unset($this->aisRegister[$fromPath]);
-        $this->aisRegister[$this->getRegisterPath($ai)] = $ai;
+        $this->registry->moveAi($ai, $fromPath);
 
         $this->io->text("<info>{$ai->getPath()}</info> Successfully moved !");
     }
 
-    private function moveFolder(string $currentFolderPath, string $destinationParentFolderPath)
+    private function moveFolder(string $folderPath, string $destinationParentFolderPath)
     {
         $folder = $this->folderApi
-            ->changeFolder($this->foldersRegister[$currentFolderPath], $this->foldersRegister[$destinationParentFolderPath])
+            ->changeFolder($this->registry->fetchFolder($folderPath), $this->registry->fetchFolder($destinationParentFolderPath))
             ->wait();
 
-        unset($this->foldersRegister[$currentFolderPath]);
-        $this->foldersRegister[$this->getRegisterPath($folder)] = $folder;
+        $this->registry->moveFolder($folder, $folderPath);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully moved !");
     }
@@ -293,17 +273,18 @@ class WatchCommand extends Command
             [$folderPath] = $this->guessPathParts($path);
 
             if (!file_exists($folderPath) && isset($this->foldersRegister[$folderPath])) {
-                $folder = $this->foldersRegister[$folderPath];
+                $folder = $this->registry->fetchFolder($folderPath);
+
                 $this->folderApi->deleteFolder($folder)->wait();
-                unset($this->foldersRegister[$folderPath]);
+                $this->registry->deleteFolder($folder);
 
                 $this->io->text("<error>{$folder->getPath()}</error> Successfully deleted !");
             }
 
-            $ai = $this->aisRegister[$path];
+            $ai = $this->registry->fetchAi($path);
 
             $this->aiApi->deleteAi($ai)->wait();
-            unset($this->aisRegister[$path]);
+            $this->registry->deleteAi($ai);
 
             $this->scheduledDeletions = [];
 
@@ -425,17 +406,5 @@ class WatchCommand extends Command
         }
 
         throw new \Exception('Could not determine folder rename');
-    }
-
-    private function getRegisterPath($entity): string
-    {
-        switch (get_class($entity)) {
-            case Ai::class:
-                return "{$this->scriptsDir}{$entity->getPath()}.{$this->extension}";
-            case Folder::class:
-                return "{$this->scriptsDir}{$entity->getPath()}";
-        }
-
-        throw new \Exception('Could not determine register path');
     }
 }
