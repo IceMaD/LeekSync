@@ -5,7 +5,6 @@ namespace App\Watch;
 use App\Model\Ai;
 use App\Model\Folder;
 use App\TreeManagement\Builder;
-use DusanKasan\Knapsack\Exceptions\ItemNotFound;
 
 class FileRegistry
 {
@@ -29,6 +28,11 @@ class FileRegistry
      */
     private $extension;
 
+    /**
+     * @var Folder
+     */
+    private $tree;
+
     public function __construct(string $scriptsDir)
     {
         $this->scriptsDir = $scriptsDir;
@@ -39,6 +43,8 @@ class FileRegistry
 
     public function init(Folder $tree)
     {
+        $this->tree = $tree;
+
         foreach (Builder::flattenAis($tree) as $ai) {
             $this->ais[$this->getAiPath($ai)] = $ai;
         }
@@ -46,6 +52,19 @@ class FileRegistry
         foreach (Builder::flattenFolders($tree) as $folder) {
             $this->folders[$this->getFolderPath($folder)] = $folder;
         }
+    }
+
+    /**
+     * @return Folder
+     */
+    public function getTree(): Folder
+    {
+        return $this->tree;
+    }
+
+    public function getAis()
+    {
+        return $this->ais;
     }
 
     public function hasAi(string $path): bool

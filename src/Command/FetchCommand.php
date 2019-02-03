@@ -9,6 +9,7 @@ use App\Model\Ai;
 use App\TreeManagement\Builder;
 use App\TreeManagement\ConflictException;
 use App\TreeManagement\Dumper;
+use App\Watch\FileRegistry;
 use DusanKasan\Knapsack\Collection;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,20 +21,14 @@ class FetchCommand extends Command
     protected static $defaultName = 'scripts:fetch';
 
     /**
-     * @var AiApi
-     */
-    private $aiApi;
-
-    /**
      * @var Dumper
      */
     private $dumper;
 
-    public function __construct(UserApi $userApi, TokenStorage $tokenStorage, AiApi $aiApi, Dumper $dumper)
+    public function __construct(UserApi $userApi, AiApi $aiApi, FileRegistry $registry, TokenStorage $tokenStorage, Dumper $dumper)
     {
-        parent::__construct($userApi, $tokenStorage);
+        parent::__construct($userApi, $aiApi, $registry, $tokenStorage);
 
-        $this->aiApi = $aiApi;
         $this->dumper = $dumper;
     }
 
@@ -45,22 +40,18 @@ class FetchCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new SymfonyStyle($input, $output);
-
-        $tree = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
-
         /**
          * @var Ai[][]|ConflictException[][]
          */
-        $ais = $this->dumper->dump($this->aiApi->getTree($tree), $input->getOption('force'));
+        $ais = $this->dumper->dump($this->registry->getTree(), $input->getOption('force'));
 
         foreach ($ais['fetched'] as $ai) {
-            $io->text("<info>{$ai->getPath()}</info> fetched");
+            $this->io->text("<info>{$ai->getPath()}</info> fetched");
         }
 
         foreach ($ais['conflicts'] as $exception) {
-            $io->text("<error>{$exception->getAi()->getPath()}</error> has conflict");
-            $io->text(
+            $this->io->text("<error>{$exception->getAi()->getPath()}</error> has conflict");
+            $this->io->text(
                 Collection::from(explode("\n", $exception->getDiffView()))
                     ->map(function (string $line) {
                         switch (substr($line, 0, 1)) {
@@ -77,7 +68,7 @@ class FetchCommand extends Command
         }
 
         if (!empty($ais['conflicts'])) {
-            $io->error([
+            $this->io->error([
                 'Some scripts had conflicts.',
                 'Fix them manually or use --force to override local data',
             ]);
@@ -85,6 +76,6 @@ class FetchCommand extends Command
             return;
         }
 
-        $io->success('You have a successfully fetched all your scripts');
+        $this->io->success('You have a successfully fetched all your scripts');
     }
 }

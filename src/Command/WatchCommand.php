@@ -6,18 +6,16 @@ use App\Api\AiApi;
 use App\Api\FolderApi;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
-use App\Model\Ai;
-use App\Model\Folder;
-use App\TreeManagement\Builder;
-use App\TreeManagement\Dumper;
 use App\Async\Deferred;
 use App\Async\Pool;
+use App\Model\Ai;
+use App\Model\Folder;
+use App\TreeManagement\Dumper;
 use App\Watch\FileRegistry;
 use App\Watch\Watcher;
 use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 class WatchCommand extends Command
 {
@@ -27,11 +25,6 @@ class WatchCommand extends Command
      * @var Watcher
      */
     private $watcher;
-
-    /**
-     * @var AiApi
-     */
-    private $aiApi;
 
     /**
      * @var string
@@ -69,39 +62,27 @@ class WatchCommand extends Command
     private $dumper;
 
     /**
-     * @var SymfonyStyle
-     */
-    private $io;
-
-    /**
      * @var FolderApi
      */
     private $folderApi;
 
-    /**
-     * @var FileRegistry
-     */
-    private $registry;
-
     public function __construct(
         UserApi $userApi,
-        TokenStorage $tokenStorage,
         AiApi $aiApi,
+        TokenStorage $tokenStorage,
+        FileRegistry $registry,
         FolderApi $folderApi,
         Dumper $dumper,
-        FileRegistry $registry,
         Watcher $watcher,
         string $scriptsDir
     ) {
-        parent::__construct($userApi, $tokenStorage);
+        parent::__construct($userApi, $aiApi, $registry, $tokenStorage);
 
         $this->watcher = $watcher;
-        $this->aiApi = $aiApi;
         $this->scriptsDir = $scriptsDir;
         $this->extension = getenv('APP_FILE_EXTENSION');
         $this->dumper = $dumper;
         $this->folderApi = $folderApi;
-        $this->registry = $registry;
         // @TODO Fix Pool design problem. Lib can not have multiple pool
         $this->deletionsPool = Pool::create();
         $this->updatesPool = Pool::create();
@@ -110,15 +91,6 @@ class WatchCommand extends Command
     protected function configure()
     {
         $this->setDescription('Watches for files changes to push them on LeekWars.com');
-    }
-
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-        parent::initialize($input, $output);
-
-        $this->registry->init(Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait()));
-
-        $this->io = new SymfonyStyle($input, $output);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -443,12 +415,5 @@ class WatchCommand extends Command
         }
 
         throw new \Exception('Could not determine folder rename');
-    }
-
-    private function logIfVerbose(string $string)
-    {
-        if ($this->io->isVerbose()) {
-            $this->io->text("<info>$string</info>");
-        }
     }
 }

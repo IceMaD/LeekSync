@@ -13,7 +13,7 @@ class RequestFailedException extends \Exception
 
     public function __construct(Response $response)
     {
-        parent::__construct('', 0);
+        parent::__construct($response->getError(), 0);
 
         $this->response = $response;
     }
