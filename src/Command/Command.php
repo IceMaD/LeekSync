@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Api\InvalidTokenException;
+use App\Api\RequestFailedException;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
@@ -31,8 +33,6 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
 
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        parent::initialize($input, $output);
-
         $io = new SymfonyStyle($input, $output);
 
         $outputStyle = new OutputFormatterStyle('red', null, ['bold']);
@@ -50,7 +50,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
                 $password = $envPassword;
 
                 $token = $this->userApi->login($login, $password)->wait()->getToken();
-            } catch (\Exception $exception) {
+            } catch (RequestFailedException $exception) {
                 $io->error('The credentials provided in the .env are invalid');
 
                 die;
@@ -69,5 +69,18 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         }
 
         $this->tokenStorage->setToken($token);
+    }
+
+    public function run(InputInterface $input, OutputInterface $output)
+    {
+        $io = new SymfonyStyle($input, $output);
+
+        try {
+            return parent::run($input, $output);
+        } catch (InvalidTokenException $exception) {
+            $io->error('Your connexion expired, please reconnect');
+
+            die;
+        }
     }
 }

@@ -23,6 +23,7 @@ class Client extends \GuzzleHttp\Client
         ];
 
         parent::__construct($config);
+
         $this->serializer = $serializer;
     }
 
@@ -42,6 +43,10 @@ class Client extends \GuzzleHttp\Client
             })
             ->then(function (Response $response) {
                 if (!$response->isSuccess()) {
+                    if (!'wrong_token' === $response->getError()) {
+                        throw new InvalidTokenException($response);
+                    }
+
                     throw new RequestFailedException($response);
                 }
 

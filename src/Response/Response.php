@@ -10,6 +10,11 @@ abstract class Response
     protected $success;
 
     /**
+     * @var string
+     */
+    protected $error;
+
+    /**
      * @return bool
      */
     public function isSuccess(): bool
@@ -25,6 +30,26 @@ abstract class Response
     public function setSuccess(bool $success)
     {
         $this->success = $success;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getError(): ?string
+    {
+        return $this->error;
+    }
+
+    /**
+     * @param string $error
+     *
+     * @return Response
+     */
+    public function setError(string $error): self
+    {
+        $this->error = $error;
 
         return $this;
     }
