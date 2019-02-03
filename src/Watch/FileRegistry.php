@@ -5,18 +5,17 @@ namespace App\Watch;
 use App\Model\Ai;
 use App\Model\Folder;
 use App\TreeManagement\Builder;
-use DusanKasan\Knapsack\Collection;
 use DusanKasan\Knapsack\Exceptions\ItemNotFound;
 
 class FileRegistry
 {
     /**
-     * @var Collection
+     * @var array
      */
     private $ais;
 
     /**
-     * @var Collection
+     * @var array
      */
     private $folders;
 
@@ -34,88 +33,105 @@ class FileRegistry
     {
         $this->scriptsDir = $scriptsDir;
         $this->extension = getenv('APP_FILE_EXTENSION');
-        $this->ais = Collection::from([]);
-        $this->folders = Collection::from([]);
+        $this->ais = [];
+        $this->folders = [];
     }
 
     public function init(Folder $tree)
     {
-        $this->ais = Collection::from(Builder::flattenAis($tree))
-            ->indexBy(function (Ai $ai) {
-                return $this->getAiPath($ai);
-            });
+        foreach (Builder::flattenAis($tree) as $ai) {
+            $this->ais[$this->getAiPath($ai)] = $ai;
+        }
 
-        $this->folders = Collection::from(Builder::flattenFolders($tree))
-            ->indexBy(function (Folder $folder) {
-                return $this->getFolderPath($folder);
-            });
+        foreach (Builder::flattenFolders($tree) as $folder) {
+            $this->folders[$this->getFolderPath($folder)] = $folder;
+        }
+    }
+
+    public function hasAi(string $path): bool
+    {
+        return isset($this->ais[$path]);
     }
 
     public function fetchAi(string $path): Ai
     {
-        try {
-            return $this->ais->get($path);
-        } catch (ItemNotFound $exception) {
+        if (!$this->hasAi($path)) {
             throw new \Exception("Unable to find AI $path");
         }
+
+        return $this->ais[$path];
     }
 
     public function pushAi(Ai $ai)
     {
-        $this->ais->append($ai, $this->getAiPath($ai));
+        $this->ais[$this->getAiPath($ai)] = $ai;
+
+        return $this;
     }
 
     public function deleteAi(Ai $ai)
     {
-        $this->ais->except([$this->getAiPath($ai)]);
+        $path = $this->getAiPath($ai);
+
+        if ($this->hasAi($path)) {
+            unset($this->ais[$path]);
+        }
+
+        return $this;
     }
 
     public function moveAi(Ai $ai, string $fromPath)
     {
-        $toPath = $this->getAiPath($ai);
+        if ($this->hasAi($fromPath)) {
+            unset($this->ais[$fromPath]);
+        }
 
-        $this->ais
-            ->mapcat(function (Ai $ai, $path) use ($fromPath, $toPath) {
-                $path = $path === $fromPath ? $toPath : $path;
+        $this->pushAi($ai);
 
-                return [$path => $ai];
-            });
+        return $this;
     }
 
     public function hasFolder(string $path): bool
     {
-        return $this->folders->has($path);
+        return isset($this->folders[$path]);
     }
 
     public function fetchFolder(string $path): Folder
     {
-        try {
-            return $this->folders->get($path);
-        } catch (ItemNotFound $exception) {
-            throw new \Exception("Unable to find folder $path");
+        if (!$this->hasFolder($path)) {
+            throw new \Exception("Unable to find Folder $path");
         }
+
+        return $this->folders[$path];
     }
 
     public function pushFolder(Folder $folder)
     {
-        $this->folders->append($folder, $this->getFolderPath($folder));
+        $this->folders[$this->getFolderPath($folder)] = $folder;
+
+        return $this;
     }
 
     public function deleteFolder(Folder $folder)
     {
-        $this->ais->except([$this->getFolderPath($folder)]);
+        $path = $this->getFolderPath($folder);
+
+        if ($this->hasFolder($path)) {
+            unset($this->folders[$path]);
+        }
+
+        return $this;
     }
 
     public function moveFolder(Folder $folder, string $fromPath)
     {
-        $toPath = $this->getFolderPath($folder);
+        if ($this->hasFolder($fromPath)) {
+            unset($this->folders[$fromPath]);
+        }
 
-        $this->ais
-            ->mapcat(function (Folder $folder, $path) use ($fromPath, $toPath) {
-                $path = $path === $fromPath ? $toPath : $path;
+        $this->pushFolder($folder);
 
-                return [$path => $folder];
-            });
+        return $this;
     }
 
     private function getAiPath(Ai $ai): string

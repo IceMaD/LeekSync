@@ -197,7 +197,7 @@ class WatchCommand extends Command
     {
         [$parentFolderPath, $name] = $this->guessPathParts($path);
 
-        if (!file_exists($parentFolderPath)) {
+        if (!$this->registry->hasFolder($parentFolderPath)) {
             $this->createFolder($parentFolderPath);
         }
 
@@ -240,7 +240,7 @@ class WatchCommand extends Command
     {
         [$folderPath] = $this->guessPathParts($path);
 
-        if (!file_exists($folderPath)) {
+        if (!$this->registry->hasFolder($folderPath)) {
             $this->createFolder($folderPath);
         }
 
