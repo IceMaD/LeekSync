@@ -2,6 +2,8 @@
 
 namespace App\Response;
 
+use App\Api\InvalidScriptError;
+
 class PostAiSaveResponse extends Response
 {
     /**
@@ -34,14 +36,12 @@ class PostAiSaveResponse extends Response
         return 3 === count($this->result);
     }
 
-    public function getError()
+    public function getAiError(): InvalidScriptError
     {
         if ($this->isAiValid()) {
             return null;
         }
 
-        [,,, $line, $column,, $error] = $this->result;
-
-        return ['line' => $line, 'column' => $column, 'error' => $error];
+        return new InvalidScriptError($this->result);
     }
 }

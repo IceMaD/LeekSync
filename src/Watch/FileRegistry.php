@@ -10,12 +10,12 @@ use DusanKasan\Knapsack\Exceptions\ItemNotFound;
 class FileRegistry
 {
     /**
-     * @var array
+     * @var Ai[]
      */
     private $ais;
 
     /**
-     * @var array
+     * @var Folder[]
      */
     private $folders;
 
@@ -60,6 +60,17 @@ class FileRegistry
         }
 
         return $this->ais[$path];
+    }
+
+    public function findAiById(int $getErroredAiId): ?Ai
+    {
+        foreach ($this->ais as $ai) {
+            if ($ai->getId() === $getErroredAiId) {
+                return $ai;
+            }
+        }
+
+        return null;
     }
 
     public function pushAi(Ai $ai)

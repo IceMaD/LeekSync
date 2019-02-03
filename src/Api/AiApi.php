@@ -92,15 +92,16 @@ class AiApi
             'class' => PostAiSaveResponse::class,
         ])
             ->then(function (PostAiSaveResponse $response) use ($code, $ai) {
-                if ($response->isAiValid()) {
-                    $ai->setCode($code);
+                $ai->setCode($code);
 
-                    return $ai;
+                if ($response->isAiValid()) {
+                    $ai->setValid(true);
+                } else {
+                    $ai->setValid(false);
+                    $ai->setError($response->getAiError());
                 }
 
-                ['line' => $line, 'column' => $column, 'error' => $error] = $response->getError();
-
-                throw new InvalidScriptException($line, $column, $error);
+                return $ai;
             });
     }
 

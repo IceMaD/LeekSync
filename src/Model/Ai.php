@@ -2,6 +2,8 @@
 
 namespace App\Model;
 
+use App\Api\InvalidScriptError;
+
 class Ai
 {
     /**
@@ -18,6 +20,11 @@ class Ai
      * @var boolean;
      */
     private $valid = true;
+
+    /**
+     * @var InvalidScriptError|null
+     */
+    private $error = null;
 
     /**
      * @var string
@@ -85,6 +92,26 @@ class Ai
     public function setValid(bool $valid)
     {
         $this->valid = $valid;
+
+        return $this;
+    }
+
+    /**
+     * @return InvalidScriptError|null
+     */
+    public function getError(): ?InvalidScriptError
+    {
+        return $this->error;
+    }
+
+    /**
+     * @param InvalidScriptError|null $error
+     *
+     * @return Ai
+     */
+    public function setError(?InvalidScriptError $error)
+    {
+        $this->error = $error;
 
         return $this;
     }

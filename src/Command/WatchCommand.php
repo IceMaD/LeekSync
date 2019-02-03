@@ -4,7 +4,7 @@ namespace App\Command;
 
 use App\Api\AiApi;
 use App\Api\FolderApi;
-use App\Api\InvalidScriptException;
+use App\Api\InvalidScriptError;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use App\Model\Ai;
@@ -156,15 +156,7 @@ class WatchCommand extends Command
         });
 
         $listener->onModify(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
-            $ai = $this->registry->fetchAi($path);
-
-            try {
-                $this->registry->moveAi($this->aiApi->updateAiCode($ai, file_get_contents($path))->wait(), $path);
-
-                $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
-            } catch (InvalidScriptException $exception) {
-                $this->io->text("<error>{$ai->getPath()}</error> {$exception->getPosition()} {$exception->getError()}");
-            }
+            $this->updateCode($path);
         });
 
         $this->io->section("Starting watch on $this->scriptsDir");
@@ -193,6 +185,7 @@ class WatchCommand extends Command
             $this->createFolder($folderPath);
         }
 
+        /** @var Ai $ai */
         $ai = (new Ai())
             ->setCode(file_get_contents($path))
             ->setFolder($this->registry->fetchFolder($folderPath));
@@ -202,7 +195,32 @@ class WatchCommand extends Command
         $ai = $this->aiApi->renameAi($ai, $name)->wait();
         $this->registry->pushAi($ai);
 
-        $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
+        if ($ai->isValid()) {
+            $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
+        } else {
+            $error = $ai->getError();
+
+            $errorAi = $this->registry->findAiById($error->getErroredAiId());
+
+            $this->io->text("<info>{$ai->getPath()}</info> Created but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+        }
+    }
+
+    private function updateCode(string $path)
+    {
+        $ai = $this->registry->fetchAi($path);
+
+        $this->registry->moveAi($this->aiApi->updateAiCode($ai, file_get_contents($path))->wait(), $path);
+
+        if ($ai->isValid()) {
+            $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
+        } else {
+            $error = $ai->getError();
+
+            $errorAi = $this->registry->findAiById($error->getErroredAiId());
+
+            $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+        }
     }
 
     private function createFolder(string $path)
