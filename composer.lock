@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f209c80a0eca27f7c15eadc62390f1a",
+    "content-hash": "c31252d067cbc1c4aef8c87b89927d9c",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -438,7 +438,7 @@
         },
         {
             "name": "icemad/leek-wars-api-bundle",
-            "version": "dev-master",
+            "version": "dev-fixed-for-leektools",
             "source": {
                 "type": "git",
                 "url": "https://github.com/IceMaD/LeekWarsApiBundle.git",
