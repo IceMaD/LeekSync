@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Api\AiApi;
 use App\Api\FolderApi;
-use App\Api\InvalidScriptError;
 use App\Api\TokenStorage;
 use App\Api\UserApi;
 use App\Model\Ai;
@@ -346,14 +345,18 @@ class WatchCommand extends Command
             [$folderPath,, $toParentFolderPath] = $this->guessPathParts($toPath);
 
             if ($fromFolderPath === $folderPath) {
+                $this->logIfVerbose("Rename AI - $fromPath - $toPath");
                 $this->renameAi($fromPath, $toPath);
             } elseif ($this->isFolderRename($fromPath, $toPath)) {
+                $this->logIfVerbose("Rename Folder - $fromPath - $toPath");
                 $this->renameFolder($fromPath, $toPath);
             } elseif ($fromParentFolderPath === $toParentFolderPath) {
+                $this->logIfVerbose("Move Folder - $fromPath - $toPath");
                 [$currentFolderPath, $destinationFolderPath] = $this->extractFolderMovement($fromPath, $toPath);
 
                 $this->moveFolder($currentFolderPath, $destinationFolderPath);
             } else {
+                $this->logIfVerbose("Move Ai - $fromPath - $toPath");
                 foreach ($this->scheduledDeletions as $key => $fromPath) {
                     $this->moveAi($fromPath, $this->scheduledUpdates[$key]);
                 }
@@ -405,13 +408,17 @@ class WatchCommand extends Command
         $fromPathParts = explode(DIRECTORY_SEPARATOR, $fromPath);
         $toPathParts = explode(DIRECTORY_SEPARATOR, $toPath);
 
+        if (count($fromPathParts) !== count($toPathParts)) {
+            return false;
+        }
+
         foreach ($fromPathParts as $index => $fromPathPart) {
             if ($fromPathPart === $toPathParts[$index]) {
                 continue;
             }
 
-            $fromPathParts = array_slice($fromPathParts, $index + 1);
-            $toPathParts = array_slice($toPathParts, $index + 1);
+            $fromPathParts = array_slice($fromPathParts, $index);
+            $toPathParts = array_slice($toPathParts, $index);
 
             return $fromPathParts === $toPathParts;
         }
