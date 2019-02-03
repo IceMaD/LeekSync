@@ -2,7 +2,7 @@
 
 namespace App\TreeManagement;
 
-use App\Model\Ai;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
 
 class ConflictException extends \Exception
 {

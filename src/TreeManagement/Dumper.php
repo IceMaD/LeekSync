@@ -2,8 +2,8 @@
 
 namespace App\TreeManagement;
 
-use App\Model\Ai;
-use App\Model\Folder;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
+use IceMaD\LeekWarsApiBundle\Entity\Folder;
 use Symfony\Component\Filesystem\Filesystem;
 
 class Dumper

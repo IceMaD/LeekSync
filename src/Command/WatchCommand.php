@@ -2,17 +2,17 @@
 
 namespace App\Command;
 
-use App\Api\AiApi;
-use App\Api\FolderApi;
-use App\Api\TokenStorage;
-use App\Api\UserApi;
+use IceMaD\LeekWarsApiBundle\Api\AiApi;
+use IceMaD\LeekWarsApiBundle\Api\FolderApi;
+use IceMaD\LeekWarsApiBundle\Api\UserApi;
 use App\Async\Deferred;
 use App\Async\Pool;
-use App\Model\Ai;
-use App\Model\Folder;
 use App\TreeManagement\Dumper;
 use App\Watch\FileRegistry;
 use App\Watch\Watcher;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
+use IceMaD\LeekWarsApiBundle\Entity\Folder;
+use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -148,6 +148,9 @@ class WatchCommand extends Command
         return [$path, $name, $parent];
     }
 
+    /**
+     * @throws \Exception
+     */
     private function createAi(string $path)
     {
         [$folderPath, $name] = $this->guessPathParts($path);
@@ -177,6 +180,9 @@ class WatchCommand extends Command
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     private function updateCode(string $path)
     {
         $ai = $this->registry->fetchAi($path);
@@ -194,6 +200,9 @@ class WatchCommand extends Command
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     private function createFolder(string $path)
     {
         [$parentFolderPath, $name] = $this->guessPathParts($path);
@@ -213,6 +222,9 @@ class WatchCommand extends Command
         $this->io->text("<info>{$folder->getPath()}</info> Successfully created !");
     }
 
+    /**
+     * @throws \Exception
+     */
     private function renameAi(string $fromPath, string $path)
     {
         [, $name] = $this->guessPathParts($path);
@@ -225,6 +237,9 @@ class WatchCommand extends Command
         $this->io->text("<info>{$ai->getPath()}</info> Successfully renamed !");
     }
 
+    /**
+     * @throws \Exception
+     */
     private function renameFolder(string $fromPath, string $path)
     {
         [$folderPath, $name] = $this->extractFolderRename($fromPath, $path);
@@ -237,6 +252,9 @@ class WatchCommand extends Command
         $this->io->text("<info>{$folder->getPath()}</info> Successfully renamed !");
     }
 
+    /**
+     * @throws \Exception
+     */
     private function moveAi(string $fromPath, string $path)
     {
         [$folderPath] = $this->guessPathParts($path);
@@ -254,6 +272,9 @@ class WatchCommand extends Command
         $this->io->text("<info>{$ai->getPath()}</info> Successfully moved !");
     }
 
+    /**
+     * @throws \Exception
+     */
     private function moveFolder(string $folderPath, string $destinationParentFolderPath)
     {
         $folder = $this->folderApi
@@ -265,6 +286,9 @@ class WatchCommand extends Command
         $this->io->text("<info>{$folder->getPath()}</info> Successfully moved !");
     }
 
+    /**
+     * @throws \Exception
+     */
     private function scheduleAiDeletion(string $path)
     {
         $this->scheduledDeletions[] = $path;
@@ -341,6 +365,9 @@ class WatchCommand extends Command
         $this->updatesPool->add($update->getProcess());
     }
 
+    /**
+     * @throws \Exception
+     */
     private function extractFolderMovement(string $fromPath, string $path): array
     {
         $fromPathParts = explode(DIRECTORY_SEPARATOR, $fromPath);
@@ -398,6 +425,9 @@ class WatchCommand extends Command
         return false;
     }
 
+    /**
+     * @throws \Exception
+     */
     private function extractFolderRename(string $fromPath, string $toPath)
     {
         $fromPathParts = explode(DIRECTORY_SEPARATOR, $fromPath);

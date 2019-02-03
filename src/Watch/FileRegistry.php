@@ -2,9 +2,9 @@
 
 namespace App\Watch;
 
-use App\Model\Ai;
-use App\Model\Folder;
 use App\TreeManagement\Builder;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
+use IceMaD\LeekWarsApiBundle\Entity\Folder;
 
 class FileRegistry
 {

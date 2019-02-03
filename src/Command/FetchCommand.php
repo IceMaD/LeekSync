@@ -2,19 +2,17 @@
 
 namespace App\Command;
 
-use App\Api\AiApi;
-use App\Api\TokenStorage;
-use App\Api\UserApi;
-use App\Model\Ai;
-use App\TreeManagement\Builder;
 use App\TreeManagement\ConflictException;
 use App\TreeManagement\Dumper;
 use App\Watch\FileRegistry;
 use DusanKasan\Knapsack\Collection;
+use IceMaD\LeekWarsApiBundle\Api\AiApi;
+use IceMaD\LeekWarsApiBundle\Api\UserApi;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
+use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 class FetchCommand extends Command
 {

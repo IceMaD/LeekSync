@@ -2,13 +2,16 @@
 
 namespace App\Command;
 
-use App\Api\AiApi;
-use App\Api\InvalidTokenException;
-use App\Api\RequestFailedException;
-use App\Api\TokenStorage;
-use App\Api\UserApi;
 use App\TreeManagement\Builder;
 use App\Watch\FileRegistry;
+use DusanKasan\Knapsack\Collection;
+use IceMaD\LeekWarsApiBundle\Api\AiApi;
+use IceMaD\LeekWarsApiBundle\Api\UserApi;
+use IceMaD\LeekWarsApiBundle\Entity\Ai;
+use IceMaD\LeekWarsApiBundle\Entity\Folder;
+use IceMaD\LeekWarsApiBundle\Exception\InvalidTokenException;
+use IceMaD\LeekWarsApiBundle\Exception\RequestFailedException;
+use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -92,7 +95,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
 
         $root = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
 
-        $this->registry->init($this->aiApi->getTree($root));
+        $this->registry->init($this->getTree($root));
     }
 
     public function run(InputInterface $input, OutputInterface $output)
@@ -113,5 +116,28 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         if ($this->io->isVerbose()) {
             $this->io->text("<info>$string</info>");
         }
+    }
+
+    public function getTree(Folder $root)
+    {
+        $root->setAis(
+            Collection::from($root->getAis())
+                ->map(function (Ai $ai) {
+                    $ai->setCode($this->aiApi->getAI($ai->getId())->wait()->getCode());
+
+                    return $ai;
+                })
+                ->toArray()
+        );
+
+        $root->setFolders(
+            Collection::from($root->getFolders())
+                ->map(function (Folder $folder) {
+                    return $this->getTree($folder);
+                })
+                ->toArray()
+        );
+
+        return $root;
     }
 }

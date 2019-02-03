@@ -1,0 +1,11 @@
+# @TODO create a recipe
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    IceMaD\LeekWarsApiBundle\:
+#        resource: '../../vendor/icemad/leek-wars-api-bundle/src/*'
+        resource: '@LeekWarsApiBundle/*'
+

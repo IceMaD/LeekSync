@@ -2,9 +2,9 @@
 
 namespace App\TreeManagement;
 
-use App\Response\GetFarmerAisResponse;
-use App\Model\Folder;
 use DusanKasan\Knapsack\Collection;
+use IceMaD\LeekWarsApiBundle\Entity\Folder;
+use IceMaD\LeekWarsApiBundle\Response\GetFarmerAisResponse;
 
 class Builder
 {

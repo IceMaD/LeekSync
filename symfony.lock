@@ -50,6 +50,9 @@
     "guzzlehttp/psr7": {
         "version": "1.5.2"
     },
+    "icemad/leek-wars-api-bundle": {
+        "version": "dev-master"
+    },
     "illuminate/contracts": {
         "version": "v5.7.23"
     },
