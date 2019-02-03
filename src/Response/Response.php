@@ -37,7 +37,7 @@ abstract class Response
     /**
      * @return string
      */
-    public function getError(): ?string
+    public function getError()
     {
         return $this->error;
     }

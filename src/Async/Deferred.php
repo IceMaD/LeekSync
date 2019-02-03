@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Watch;
+namespace App\Async;
 
 class Deferred
 {

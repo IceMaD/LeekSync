@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Watch;
+namespace App\Async;
 
 use Spatie\Async\Output\ParallelError;
 use Spatie\Async\Process\ParallelProcess;

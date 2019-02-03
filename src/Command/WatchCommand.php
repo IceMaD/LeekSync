@@ -11,9 +11,9 @@ use App\Model\Ai;
 use App\Model\Folder;
 use App\TreeManagement\Builder;
 use App\TreeManagement\Dumper;
-use App\Watch\Deferred;
+use App\Async\Deferred;
+use App\Async\Pool;
 use App\Watch\FileRegistry;
-use App\Watch\Pool;
 use App\Watch\Watcher;
 use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -100,11 +100,12 @@ class WatchCommand extends Command
         $this->aiApi = $aiApi;
         $this->scriptsDir = $scriptsDir;
         $this->extension = getenv('APP_FILE_EXTENSION');
-        $this->deletionsPool = new Pool();
-        $this->updatesPool = new Pool();
         $this->dumper = $dumper;
         $this->folderApi = $folderApi;
         $this->registry = $registry;
+        // @TODO Fix Pool design problem. Lib can not have multiple pool
+        $this->deletionsPool = Pool::create();
+        $this->updatesPool = Pool::create();
     }
 
     protected function configure()
@@ -126,19 +127,30 @@ class WatchCommand extends Command
         $listener = $this->watcher->watch();
 
         $listener->onDelete(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
-            $this->scheduleAiDeletion($path);
+            if ($this->deletionsPool->isRunning()) {
+                $this->logIfVerbose("Reschedule deletion - $path");
+                $this->deletionsPool->stop();
+
+                $this->scheduleAiDeletion($path);
+            } else {
+                $this->logIfVerbose("Schedule deletion - $path");
+                $this->scheduleAiDeletion($path);
+            }
         });
 
         $listener->onCreate(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
             if ($this->updatesPool->isRunning()) {
                 $this->updatesPool->stop();
 
+                $this->logIfVerbose("Reschedule update - $path");
                 $this->scheduleUnknownUpdate($path);
             } elseif ($this->deletionsPool->isRunning()) {
                 $this->deletionsPool->stop();
 
+                $this->logIfVerbose("Schedule update - $path");
                 $this->scheduleUnknownUpdate($path);
             } else {
+                $this->logIfVerbose("Create AI - $path");
                 $this->createAi($path);
             }
         });
@@ -267,27 +279,30 @@ class WatchCommand extends Command
     private function scheduleAiDeletion(string $path)
     {
         $this->scheduledDeletions[] = $path;
+        $this->deletionsPool = Pool::create();
 
-        $deletion = new Deferred(function () use ($path) {
-            [$folderPath] = $this->guessPathParts($path);
+        $deletion = new Deferred(function () {
+            foreach ($this->scheduledDeletions as $path) {
+                [$folderPath] = $this->guessPathParts($path);
 
-            if (!file_exists($folderPath) && $this->registry->hasFolder($folderPath)) {
-                $folder = $this->registry->fetchFolder($folderPath);
+                if (!file_exists($folderPath) && $this->registry->hasFolder($folderPath)) {
+                    $folder = $this->registry->fetchFolder($folderPath);
 
-                $this->folderApi->deleteFolder($folder)->wait();
-                $this->registry->deleteFolder($folder);
+                    $this->folderApi->deleteFolder($folder)->wait();
+                    $this->registry->deleteFolder($folder);
 
-                $this->io->text("<error>{$folder->getPath()}</error> Successfully deleted !");
+                    $this->io->text("<error>{$folder->getPath()}</error> Successfully deleted !");
+                }
+
+                $ai = $this->registry->fetchAi($path);
+
+                $this->aiApi->deleteAi($ai)->wait();
+                $this->registry->deleteAi($ai);
+
+                $this->io->text("<error>{$ai->getPath()}</error> Successfully deleted !");
             }
 
-            $ai = $this->registry->fetchAi($path);
-
-            $this->aiApi->deleteAi($ai)->wait();
-            $this->registry->deleteAi($ai);
-
             $this->scheduledDeletions = [];
-
-            $this->io->text("<error>{$ai->getPath()}</error> Successfully deleted !");
         });
 
         $this->deletionsPool->add($deletion->getProcess());
@@ -296,6 +311,7 @@ class WatchCommand extends Command
     private function scheduleUnknownUpdate(string $path)
     {
         $this->scheduledUpdates[] = $path;
+        $this->updatesPool = Pool::create();
 
         $update = new Deferred(function () {
             $deletionsCount = count($this->scheduledDeletions);
@@ -402,5 +418,12 @@ class WatchCommand extends Command
         }
 
         throw new \Exception('Could not determine folder rename');
+    }
+
+    private function logIfVerbose(string $string)
+    {
+        if ($this->io->isVerbose()) {
+            $this->io->text("<info>$string</info>");
+        }
     }
 }
