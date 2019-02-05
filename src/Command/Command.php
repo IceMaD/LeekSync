@@ -6,7 +6,7 @@ use App\TreeManagement\Builder;
 use App\Watch\FileRegistry;
 use DusanKasan\Knapsack\Collection;
 use IceMaD\LeekWarsApiBundle\Api\AiApi;
-use IceMaD\LeekWarsApiBundle\Api\UserApi;
+use IceMaD\LeekWarsApiBundle\Api\FarmerApi;
 use IceMaD\LeekWarsApiBundle\Entity\Ai;
 use IceMaD\LeekWarsApiBundle\Entity\Folder;
 use IceMaD\LeekWarsApiBundle\Exception\InvalidTokenException;
@@ -19,15 +19,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 abstract class Command extends \Symfony\Component\Console\Command\Command
 {
-    /**
-     * @var UserApi
-     */
-    protected $userApi;
-
-    /**
-     * @var TokenStorage
-     */
-    protected $tokenStorage;
 
     /**
      * @var SymfonyStyle
@@ -35,23 +26,32 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
     protected $io;
 
     /**
-     * @var FileRegistry
-     */
-    protected $registry;
-
-    /**
      * @var AiApi
      */
     protected $aiApi;
+    /**
+     * @var FarmerApi
+     */
+    protected $farmerApi;
 
-    public function __construct(UserApi $userApi, AiApi $aiApi, FileRegistry $registry, TokenStorage $tokenStorage)
+    /**
+     * @var FileRegistry
+     */
+    protected $fileRegistry;
+
+    /**
+     * @var TokenStorage
+     */
+    protected $tokenStorage;
+
+    public function __construct(AiApi $aiApi, FarmerApi $farmerApi, FileRegistry $fileRegistry, TokenStorage $tokenStorage)
     {
         parent::__construct();
 
-        $this->userApi = $userApi;
-        $this->tokenStorage = $tokenStorage;
         $this->aiApi = $aiApi;
-        $this->registry = $registry;
+        $this->farmerApi = $farmerApi;
+        $this->fileRegistry = $fileRegistry;
+        $this->tokenStorage = $tokenStorage;
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
@@ -72,7 +72,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
                 $login = $envLogin;
                 $password = $envPassword;
 
-                $token = $this->userApi->login($login, $password)->wait()->getToken();
+                $token = $this->farmerApi->loginToken($login, $password)->wait()->getToken();
             } catch (RequestFailedException $exception) {
                 $this->io->error('The credentials provided in the .env are invalid');
 
@@ -84,7 +84,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
                     $login = $this->io->ask('Login', $login ?? $envLogin);
                     $password = $this->io->askHidden('Password');
 
-                    $token = $this->userApi->login($login, $password)->wait()->getToken();
+                    $token = $this->farmerApi->loginToken($login, $password)->wait()->getToken();
                 } catch (\Exception $exception) {
                     $this->io->error('Invalid credentials');
                 }
@@ -95,7 +95,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
 
         $root = Builder::buildFolderTree($this->aiApi->getFarmerAIs()->wait());
 
-        $this->registry->init($this->getTree($root));
+        $this->fileRegistry->init($this->getTree($root));
     }
 
     public function run(InputInterface $input, OutputInterface $output)
@@ -123,7 +123,7 @@ abstract class Command extends \Symfony\Component\Console\Command\Command
         $root->setAis(
             Collection::from($root->getAis())
                 ->map(function (Ai $ai) {
-                    $ai->setCode($this->aiApi->getAI($ai->getId())->wait()->getCode());
+                    $ai->setCode($this->aiApi->getAI($ai->getId())->wait()->getAi()->getCode());
 
                     return $ai;
                 })

@@ -2,16 +2,17 @@
 
 namespace App\Command;
 
-use IceMaD\LeekWarsApiBundle\Api\AiApi;
-use IceMaD\LeekWarsApiBundle\Api\FolderApi;
-use IceMaD\LeekWarsApiBundle\Api\UserApi;
 use App\Async\Deferred;
 use App\Async\Pool;
 use App\TreeManagement\Dumper;
 use App\Watch\FileRegistry;
 use App\Watch\Watcher;
+use IceMaD\LeekWarsApiBundle\Api\AiApi;
+use IceMaD\LeekWarsApiBundle\Api\AiFolderApi;
+use IceMaD\LeekWarsApiBundle\Api\FarmerApi;
 use IceMaD\LeekWarsApiBundle\Entity\Ai;
 use IceMaD\LeekWarsApiBundle\Entity\Folder;
+use IceMaD\LeekWarsApiBundle\Response\Ai\SaveResponse;
 use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -62,30 +63,32 @@ class WatchCommand extends Command
     private $dumper;
 
     /**
-     * @var FolderApi
+     * @var AiFolderApi
      */
     private $folderApi;
 
     public function __construct(
-        UserApi $userApi,
         AiApi $aiApi,
-        TokenStorage $tokenStorage,
-        FileRegistry $registry,
-        FolderApi $folderApi,
+        AiFolderApi $folderApi,
         Dumper $dumper,
+        FarmerApi $farmerApi,
+        FileRegistry $registry,
+        TokenStorage $tokenStorage,
         Watcher $watcher,
         string $scriptsDir
     ) {
-        parent::__construct($userApi, $aiApi, $registry, $tokenStorage);
+        parent::__construct($aiApi, $farmerApi, $registry, $tokenStorage);
 
-        $this->watcher = $watcher;
-        $this->scriptsDir = $scriptsDir;
-        $this->extension = getenv('APP_FILE_EXTENSION');
         $this->dumper = $dumper;
         $this->folderApi = $folderApi;
+        $this->watcher = $watcher;
+
         // @TODO Fix Pool design problem. Lib can not have multiple pool
         $this->deletionsPool = Pool::create();
         $this->updatesPool = Pool::create();
+
+        $this->extension = getenv('APP_FILE_EXTENSION');
+        $this->scriptsDir = $scriptsDir;
     }
 
     protected function configure()
@@ -155,29 +158,35 @@ class WatchCommand extends Command
     {
         [$folderPath, $name] = $this->guessPathParts($path);
 
-        if (!$this->registry->hasFolder($folderPath)) {
+        if (!$this->fileRegistry->hasFolder($folderPath)) {
             $this->createFolder($folderPath);
         }
 
-        /** @var Ai $ai */
-        $ai = (new Ai())
-            ->setCode(file_get_contents($path))
-            ->setFolder($this->registry->fetchFolder($folderPath));
+        $ai = (new Ai())->setName($name)
+            ->setFolder($this->fileRegistry->fetchFolder($folderPath))
+            ->setCode(file_get_contents($path));
 
-        $ai = $this->aiApi->createAi($ai)->wait();
-        $ai = $this->aiApi->updateAiCode($ai, $ai->getCode())->wait();
-        $ai = $this->aiApi->renameAi($ai, $name)->wait();
-        $this->registry->pushAi($ai);
+        $ai->setId($this->aiApi->new($ai->getFolder()->getId())->wait()->getAi()->getId());
 
-        if ($ai->isValid()) {
-            $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
-        } else {
-            $error = $ai->getError();
+        $this->aiApi->rename($ai->getId(), $ai->getName())->wait();
+        $this->aiApi->save($ai->getId(), $ai->getCode())->then(function (SaveResponse $response) use ($ai) {
+            if ($response->isAiValid()) {
+                $ai->setValid(true);
 
-            $errorAi = $this->registry->findAiById($error->getErroredAiId());
+                $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
+            } else {
+                $ai->setValid(false);
+                $ai->setError($response->getAiError());
 
-            $this->io->text("<info>{$ai->getPath()}</info> Created but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
-        }
+                $error = $ai->getError();
+
+                $errorAi = $this->fileRegistry->findAiById($error->getErroredAiId());
+
+                $this->io->text("<info>{$ai->getPath()}</info> Created but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+            }
+
+            $this->fileRegistry->pushAi($ai);
+        })->wait();
     }
 
     /**
@@ -185,19 +194,28 @@ class WatchCommand extends Command
      */
     private function updateCode(string $path)
     {
-        $ai = $this->registry->fetchAi($path);
+        $ai = $this->fileRegistry->fetchAi($path);
 
-        $this->registry->moveAi($this->aiApi->updateAiCode($ai, file_get_contents($path))->wait(), $path);
+        $code = file_get_contents($path);
 
-        if ($ai->isValid()) {
-            $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
-        } else {
-            $error = $ai->getError();
+        $this->aiApi->save($ai->getId(), $code)->then(function (SaveResponse $response) use ($path, $ai) {
+            if ($response->isAiValid()) {
+                $ai->setValid(true);
 
-            $errorAi = $this->registry->findAiById($error->getErroredAiId());
+                $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
+            } else {
+                $ai->setValid(false);
+                $ai->setError($response->getAiError());
 
-            $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
-        }
+                $error = $ai->getError();
+
+                $errorAi = $this->fileRegistry->findAiById($error->getErroredAiId());
+
+                $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+            }
+
+            $this->fileRegistry->moveAi($ai, $path);
+        })->wait();
     }
 
     /**
@@ -207,17 +225,17 @@ class WatchCommand extends Command
     {
         [$parentFolderPath, $name] = $this->guessPathParts($path);
 
-        if (!$this->registry->hasFolder($parentFolderPath)) {
+        if (!$this->fileRegistry->hasFolder($parentFolderPath)) {
             $this->createFolder($parentFolderPath);
         }
 
         $folder = (new Folder())
-            ->setFolder($this->registry->fetchFolder($parentFolderPath));
+            ->setName($name)
+            ->setFolder($this->fileRegistry->fetchFolder($parentFolderPath));
 
-        $folder = $this->folderApi->createFolder($folder)->wait();
-        $folder = $this->folderApi->renameFolder($folder, $name)->wait();
-
-        $this->registry->pushFolder($folder);
+        $folder->setId($this->folderApi->new($folder->getFolder()->getId())->wait()->getId());
+        $this->folderApi->rename($folder->getId(), $folder->getName())->wait();
+        $this->fileRegistry->pushFolder($folder);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully created !");
     }
@@ -229,10 +247,11 @@ class WatchCommand extends Command
     {
         [, $name] = $this->guessPathParts($path);
 
-        $ai = $this->registry->fetchAi($fromPath);
+        $ai = $this->fileRegistry->fetchAi($fromPath);
+        $ai->setName($name);
 
-        $ai = $this->aiApi->renameAi($ai, $name)->wait();
-        $this->registry->moveAi($ai, $fromPath);
+        $this->aiApi->rename($ai->getId(), $ai->getName())->wait();
+        $this->fileRegistry->moveAi($ai, $fromPath);
 
         $this->io->text("<info>{$ai->getPath()}</info> Successfully renamed !");
     }
@@ -244,10 +263,11 @@ class WatchCommand extends Command
     {
         [$folderPath, $name] = $this->extractFolderRename($fromPath, $path);
 
-        $folder = $this->registry->fetchFolder($folderPath);
+        $folder = $this->fileRegistry->fetchFolder($folderPath);
+        $folder->setName($name);
 
-        $folder = $this->folderApi->renameFolder($folder, $name)->wait();
-        $this->registry->moveFolder($folder, $fromPath);
+        $this->folderApi->rename($folder->getId(), $folder->getName())->wait();
+        $this->fileRegistry->moveFolder($folder, $fromPath);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully renamed !");
     }
@@ -259,15 +279,17 @@ class WatchCommand extends Command
     {
         [$folderPath] = $this->guessPathParts($path);
 
-        if (!$this->registry->hasFolder($folderPath)) {
+        if (!$this->fileRegistry->hasFolder($folderPath)) {
             $this->createFolder($folderPath);
         }
 
-        $ai = $this->registry->fetchAi($fromPath);
-        $folder = $this->registry->fetchFolder($folderPath);
+        $ai = $this->fileRegistry->fetchAi($fromPath);
+        $folder = $this->fileRegistry->fetchFolder($folderPath);
+        $ai->getFolder()->removeAi($ai);
+        $folder->addAi($ai);
 
-        $ai = $this->aiApi->changeFolder($ai, $folder)->wait();
-        $this->registry->moveAi($ai, $fromPath);
+        $this->aiApi->changeFolder($ai->getId(), $folder->getId())->wait();
+        $this->fileRegistry->moveAi($ai, $fromPath);
 
         $this->io->text("<info>{$ai->getPath()}</info> Successfully moved !");
     }
@@ -277,11 +299,16 @@ class WatchCommand extends Command
      */
     private function moveFolder(string $folderPath, string $destinationParentFolderPath)
     {
-        $folder = $this->folderApi
-            ->changeFolder($this->registry->fetchFolder($folderPath), $this->registry->fetchFolder($destinationParentFolderPath))
+        $folder = $this->fileRegistry->fetchFolder($folderPath);
+        $destinationParentFolder = $this->fileRegistry->fetchFolder($destinationParentFolderPath);
+        $folder->getFolder()->removeFolder($folder);
+        $destinationParentFolder->addFolder($folder);
+
+        $this->folderApi
+            ->changeFolder($folder->getId(), $destinationParentFolder->getId())
             ->wait();
 
-        $this->registry->moveFolder($folder, $folderPath);
+        $this->fileRegistry->moveFolder($folder, $folderPath);
 
         $this->io->text("<info>{$folder->getPath()}</info> Successfully moved !");
     }
@@ -298,19 +325,19 @@ class WatchCommand extends Command
             foreach ($this->scheduledDeletions as $path) {
                 [$folderPath] = $this->guessPathParts($path);
 
-                if (!file_exists($folderPath) && $this->registry->hasFolder($folderPath)) {
-                    $folder = $this->registry->fetchFolder($folderPath);
+                if (!file_exists($folderPath) && $this->fileRegistry->hasFolder($folderPath)) {
+                    $folder = $this->fileRegistry->fetchFolder($folderPath);
 
-                    $this->folderApi->deleteFolder($folder)->wait();
-                    $this->registry->deleteFolder($folder);
+                    $this->folderApi->delete($folder->getId())->wait();
+                    $this->fileRegistry->deleteFolder($folder);
 
                     $this->io->text("<error>{$folder->getPath()}</error> Successfully deleted !");
                 }
 
-                $ai = $this->registry->fetchAi($path);
+                $ai = $this->fileRegistry->fetchAi($path);
 
-                $this->aiApi->deleteAi($ai)->wait();
-                $this->registry->deleteAi($ai);
+                $this->aiApi->delete($ai->getId())->wait();
+                $this->fileRegistry->deleteAi($ai);
 
                 $this->io->text("<error>{$ai->getPath()}</error> Successfully deleted !");
             }
@@ -411,18 +438,10 @@ class WatchCommand extends Command
             return false;
         }
 
-        foreach ($fromPathParts as $index => $fromPathPart) {
-            if ($fromPathPart === $toPathParts[$index]) {
-                continue;
-            }
+        [$fromPath] = $this->guessPathParts($fromPath);
+        [$toPath] = $this->guessPathParts($toPath);
 
-            $fromPathParts = array_slice($fromPathParts, $index);
-            $toPathParts = array_slice($toPathParts, $index);
-
-            return $fromPathParts === $toPathParts;
-        }
-
-        return false;
+        return !file_exists($fromPath) && is_dir($toPath);
     }
 
     /**

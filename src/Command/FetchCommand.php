@@ -7,7 +7,7 @@ use App\TreeManagement\Dumper;
 use App\Watch\FileRegistry;
 use DusanKasan\Knapsack\Collection;
 use IceMaD\LeekWarsApiBundle\Api\AiApi;
-use IceMaD\LeekWarsApiBundle\Api\UserApi;
+use IceMaD\LeekWarsApiBundle\Api\FarmerApi;
 use IceMaD\LeekWarsApiBundle\Entity\Ai;
 use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,9 +23,9 @@ class FetchCommand extends Command
      */
     private $dumper;
 
-    public function __construct(UserApi $userApi, AiApi $aiApi, FileRegistry $registry, TokenStorage $tokenStorage, Dumper $dumper)
+    public function __construct(AiApi $aiApi, FarmerApi $farmerApi, FileRegistry $registry, TokenStorage $tokenStorage, Dumper $dumper)
     {
-        parent::__construct($userApi, $aiApi, $registry, $tokenStorage);
+        parent::__construct($aiApi, $farmerApi, $registry, $tokenStorage);
 
         $this->dumper = $dumper;
     }
@@ -41,7 +41,7 @@ class FetchCommand extends Command
         /**
          * @var Ai[][]|ConflictException[][]
          */
-        $ais = $this->dumper->dump($this->registry->getTree(), $input->getOption('force'));
+        $ais = $this->dumper->dump($this->fileRegistry->getTree(), $input->getOption('force'));
 
         foreach ($ais['fetched'] as $ai) {
             $this->io->text("<info>{$ai->getPath()}</info> fetched");

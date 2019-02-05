@@ -4,7 +4,7 @@ namespace App\TreeManagement;
 
 use DusanKasan\Knapsack\Collection;
 use IceMaD\LeekWarsApiBundle\Entity\Folder;
-use IceMaD\LeekWarsApiBundle\Response\GetFarmerAisResponse;
+use IceMaD\LeekWarsApiBundle\Response\Ai\GetFarmerAisResponse;
 
 class Builder
 {

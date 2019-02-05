@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c31252d067cbc1c4aef8c87b89927d9c",
+    "content-hash": "6f209c80a0eca27f7c15eadc62390f1a",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -438,34 +438,48 @@
         },
         {
             "name": "icemad/leek-wars-api-bundle",
-            "version": "dev-fixed-for-leektools",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/IceMaD/LeekWarsApiBundle.git",
-                "reference": "4cd8f7959148ca4171124e767bf0af3afc83e547"
+                "reference": "eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/4cd8f7959148ca4171124e767bf0af3afc83e547",
-                "reference": "4cd8f7959148ca4171124e767bf0af3afc83e547",
+                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e",
+                "reference": "eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e",
                 "shasum": ""
             },
             "require": {
                 "guzzlehttp/guzzle": "^6.3",
                 "php": "^7.1.3",
                 "symfony/dependency-injection": "~3.4|~4.0",
-                "symfony/flex": "^1.1",
                 "symfony/http-kernel": "~3.4|~4.0",
                 "symfony/serializer-pack": "^1.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.14",
+                "symfony/console": "^4.2",
+                "symfony/dotenv": "^4.2",
+                "symfony/flex": "^1.1",
+                "symfony/framework-bundle": "^4.2",
+                "symfony/yaml": "^4.2"
             },
             "type": "symfony-bundle",
             "autoload": {
                 "psr-4": {
-                    "IceMaD\\LeekWarsApiBundle\\": "src/"
+                    "IceMaD\\LeekWarsApiBundle\\": "src/",
+                    "Dev\\": "dev/"
                 },
                 "exclude-from-classmap": [
                     "/Tests/"
                 ]
+            },
+            "scripts": {
+                "auto-scripts": {
+                    "cache:clear": "symfony-cmd",
+                    "assets:install %PUBLIC_DIR%": "symfony-cmd"
+                }
             },
             "license": [
                 "MIT"
@@ -481,7 +495,7 @@
                 "source": "https://github.com/IceMaD/LeekWarsApiBundle/tree/master",
                 "issues": "https://github.com/IceMaD/LeekWarsApiBundle/issues"
             },
-            "time": "2019-02-03T23:17:05+00:00"
+            "time": "2019-02-05T23:24:14+00:00"
         },
         {
             "name": "illuminate/contracts",

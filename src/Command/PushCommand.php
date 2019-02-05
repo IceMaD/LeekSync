@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use function GuzzleHttp\Promise\unwrap;
+use IceMaD\LeekWarsApiBundle\Response\Ai\SaveResponse;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -16,19 +18,30 @@ class PushCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach ($this->registry->getAis() as $path => $ai) {
-            $this->aiApi->updateAiCode($ai, $ai->getCode())->wait();
+        $promises = [];
 
-            if ($ai->isValid()) {
-                $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
-            } else {
-                $error = $ai->getError();
+        foreach ($this->fileRegistry->getAis() as $path => $ai) {
+            $promises[] = $this->aiApi->save($ai->getId(), $ai->getCode())
+                ->then(function (SaveResponse $response) use ($ai) {
+                    if ($response->isAiValid()) {
+                        $ai->setValid(true);
 
-                $errorAi = $this->registry->findAiById($error->getErroredAiId());
+                        $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
+                    } else {
+                        $ai->setValid(false);
+                        $ai->setError($response->getAiError());
 
-                $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
-            }
+                        $error = $ai->getError();
+                        $errorAi = $this->fileRegistry->findAiById($error->getErroredAiId());
+
+                        $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+                    }
+
+                    return $ai;
+                });
         }
+
+        unwrap($promises);
 
         $this->io->success('You have a successfully pushed all your scripts');
     }
