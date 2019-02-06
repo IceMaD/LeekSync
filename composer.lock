@@ -442,12 +442,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/IceMaD/LeekWarsApiBundle.git",
-                "reference": "eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e"
+                "reference": "4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e",
-                "reference": "eb80d76a71b462d28eb8ac3232be1e7f7c70ca7e",
+                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a",
+                "reference": "4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a",
                 "shasum": ""
             },
             "require": {
@@ -492,10 +492,10 @@
             ],
             "description": "IceMaD LeekWarsApiBundle",
             "support": {
-                "source": "https://github.com/IceMaD/LeekWarsApiBundle/tree/master",
+                "source": "https://github.com/IceMaD/LeekWarsApiBundle/tree/dpendency-injection-tests",
                 "issues": "https://github.com/IceMaD/LeekWarsApiBundle/issues"
             },
-            "time": "2019-02-05T23:24:14+00:00"
+            "time": "2019-02-06T00:01:35+00:00"
         },
         {
             "name": "illuminate/contracts",
