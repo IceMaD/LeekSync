@@ -12,12 +12,17 @@ use IceMaD\LeekWarsApiBundle\Response\Garden\GetLeekOpponentsResponse;
 use IceMaD\LeekWarsApiBundle\Response\Garden\StartSoloFightResponse;
 use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class FightSoloScriptsCommand extends LoggedCommand
 {
     protected static $defaultName = 'fight:solo';
+
+    const STRATEGY_MANUAL = 'manual';
+    const STRATEGY_TALENT = 'talent';
+    const STRATEGY_LEVEL = 'level';
 
     /**
      * @var FightApi
@@ -40,7 +45,21 @@ class FightSoloScriptsCommand extends LoggedCommand
 
     protected function configure()
     {
-        $this->setDescription('Launches your solo fights');
+        $this->setDescription('Launches your solo fights')
+            ->addOption(
+                'fights',
+                'f',
+                InputOption::VALUE_REQUIRED,
+                'Number of fights to launch (default: 10)',
+                5
+            )
+            ->addOption(
+                'strategy',
+                's',
+                InputOption::VALUE_REQUIRED,
+                'Strategy to choose the opponent manual|talent|level (default: manual)',
+                self::STRATEGY_MANUAL
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -48,16 +67,22 @@ class FightSoloScriptsCommand extends LoggedCommand
         /** @var Farmer $farmer */
         $farmer = $this->farmerApi->getFromToken()->wait()->getFarmer();
 
+        $farmerFights = $farmer->getFights();
+
+        $this->io->title("Welcome to the solo fight command, you have $farmerFights fights to do today");
+
         $leek = $this->askWhichLeek($farmer);
 
-        for ($fights = $farmer->getFights(); $fights > 0; --$fights) {
+        for ($fights = 0; $fights < min($farmerFights, (int) $input->getOption('fights')); ++$fights) {
+            $this->io->section('Fight #'.($fights + 1));
+
             /** @var GetLeekOpponentsResponse $garden */
             $garden = $this->gardenApi->getLeekOpponents($leek->getId())->wait();
 
             $sessionId = $garden->getPhpSessId();
             $opponents = $garden->getOpponents();
 
-            $opponent = $this->askWhichOpponent($opponents);
+            $opponent = $this->askWhichOpponent($opponents, $this->getStrategy($input));
 
             /** @var StartSoloFightResponse $gardenFightResponse */
             $gardenFightResponse = $this->gardenApi->startSoloFight($leek->getId(), $opponent->getId(), $sessionId)->wait();
@@ -114,22 +139,53 @@ class FightSoloScriptsCommand extends LoggedCommand
         return $leeks[$this->io->askQuestion($leekChoice)];
     }
 
-    private function askWhichOpponent(array $opponents): Leek
+    private function askWhichOpponent(array $opponents, string $strategy): Leek
     {
-        $leeks = [];
+        if (self::STRATEGY_MANUAL === $strategy) {
+            $leeks = [];
 
-        foreach ($opponents as $leek) {
-            $leeks[$leek->getName()] = $leek;
+            foreach ($opponents as $leek) {
+                $leeks[$leek->getName()] = $leek;
+            }
+
+            $this->io->table(['Leek', 'Level', 'Talent'], array_map(function (Leek $leek) {
+                return [$leek->getName(), $leek->getLevel(), $leek->getTalent()];
+            }, $leeks));
+
+            $leekChoice = new ChoiceQuestion('Which leek do you want to use ?', array_map(function (Leek $leek) {
+                return "{$leek->getName()}";
+            }, $leeks));
+
+            return $leeks[$this->io->askQuestion($leekChoice)];
         }
 
-        $this->io->table(['Leek', 'Level', 'Talent'], array_map(function (Leek $leek) {
-            return [$leek->getName(), $leek->getLevel(), $leek->getTalent()];
-        }, $leeks));
+        return array_reduce($opponents, function (?Leek $opponent, Leek $nextLeek) use ($strategy) {
+            if (!$opponent) {
+                return $nextLeek;
+            }
 
-        $leekChoice = new ChoiceQuestion('Which leek do you want to use ?', array_map(function (Leek $leek) {
-            return "{$leek->getName()}";
-        }, $leeks));
+            if (self::STRATEGY_LEVEL === $strategy) {
+                return $nextLeek->getLevel() < $opponent->getLevel() ? $nextLeek : $opponent;
+            }
 
-        return $leeks[$this->io->askQuestion($leekChoice)];
+            if (self::STRATEGY_TALENT === $strategy) {
+                return $nextLeek->getTalent() < $opponent->getTalent() ? $nextLeek : $opponent;
+            }
+
+            throw new \RuntimeException("Non managed strategy $strategy");
+        });
+    }
+
+    private function getStrategy(InputInterface $input)
+    {
+        switch ($input->getOption('strategy')) {
+            case self::STRATEGY_LEVEL:
+                return self::STRATEGY_LEVEL;
+            case self::STRATEGY_TALENT:
+                return self::STRATEGY_TALENT;
+            case self::STRATEGY_MANUAL:
+            default:
+                return self::STRATEGY_MANUAL;
+        }
     }
 }
