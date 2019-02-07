@@ -442,12 +442,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/IceMaD/LeekWarsApiBundle.git",
-                "reference": "4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a"
+                "reference": "e1dfffdb310c3901e7b6a25066313f1cb54552c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a",
-                "reference": "4c3cf0b3d637d22cc917552c9e382e9f3ce8d56a",
+                "url": "https://api.github.com/repos/IceMaD/LeekWarsApiBundle/zipball/e1dfffdb310c3901e7b6a25066313f1cb54552c4",
+                "reference": "e1dfffdb310c3901e7b6a25066313f1cb54552c4",
                 "shasum": ""
             },
             "require": {
@@ -460,16 +460,17 @@
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.14",
                 "symfony/console": "^4.2",
+                "symfony/debug-pack": "^1.0",
                 "symfony/dotenv": "^4.2",
                 "symfony/flex": "^1.1",
                 "symfony/framework-bundle": "^4.2",
+                "symfony/maker-bundle": "^1.11",
                 "symfony/yaml": "^4.2"
             },
             "type": "symfony-bundle",
             "autoload": {
                 "psr-4": {
-                    "IceMaD\\LeekWarsApiBundle\\": "src/",
-                    "Dev\\": "dev/"
+                    "IceMaD\\LeekWarsApiBundle\\": "src/"
                 },
                 "exclude-from-classmap": [
                     "/Tests/"
@@ -492,10 +493,10 @@
             ],
             "description": "IceMaD LeekWarsApiBundle",
             "support": {
-                "source": "https://github.com/IceMaD/LeekWarsApiBundle/tree/dpendency-injection-tests",
+                "source": "https://github.com/IceMaD/LeekWarsApiBundle/tree/master",
                 "issues": "https://github.com/IceMaD/LeekWarsApiBundle/issues"
             },
-            "time": "2019-02-06T00:01:35+00:00"
+            "time": "2019-02-07T21:31:12+00:00"
         },
         {
             "name": "illuminate/contracts",

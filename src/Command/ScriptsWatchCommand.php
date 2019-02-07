@@ -18,7 +18,7 @@ use JasonLewis\ResourceWatcher\Resource\ResourceInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class WatchCommand extends Command
+class ScriptsWatchCommand extends ScriptsCommand
 {
     protected static $defaultName = 'scripts:watch';
 

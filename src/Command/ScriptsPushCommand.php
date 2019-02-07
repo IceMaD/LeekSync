@@ -7,7 +7,7 @@ use IceMaD\LeekWarsApiBundle\Response\Ai\SaveResponse;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PushCommand extends Command
+class ScriptsPushCommand extends ScriptsCommand
 {
     protected static $defaultName = 'scripts:push';
 
