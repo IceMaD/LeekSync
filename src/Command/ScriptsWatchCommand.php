@@ -93,7 +93,7 @@ class ScriptsWatchCommand extends ScriptsCommand
 
     protected function configure()
     {
-        $this->setDescription('Watches for files changes to push them on LeekWars.com');
+        $this->setDescription('Observe les changements sur vos fichiers pour les synchroniser avec LeekWars');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -133,7 +133,7 @@ class ScriptsWatchCommand extends ScriptsCommand
             $this->updateCode($path);
         });
 
-        $this->io->section("Starting watch on $this->scriptsDir");
+        $this->io->section("Observateur lancé sur le dossier $this->scriptsDir");
 
         $this->watcher->start(100000);
     }
@@ -173,7 +173,7 @@ class ScriptsWatchCommand extends ScriptsCommand
             if ($response->isAiValid()) {
                 $ai->setValid(true);
 
-                $this->io->text("<info>{$ai->getPath()}</info> Successfully created !");
+                $this->io->text("<info>{$ai->getPath()}</info> - IA créée");
             } else {
                 $ai->setValid(false);
                 $ai->setError($response->getAiError());
@@ -182,7 +182,7 @@ class ScriptsWatchCommand extends ScriptsCommand
 
                 $errorAi = $this->fileRegistry->findAiById($error->getErroredAiId());
 
-                $this->io->text("<info>{$ai->getPath()}</info> Created but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+                $this->io->text("<info>{$ai->getPath()}</info> - IA créée mais invalide <error>{$errorAi->getPath()}</error> ligne {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
             }
 
             $this->fileRegistry->pushAi($ai);
@@ -202,7 +202,7 @@ class ScriptsWatchCommand extends ScriptsCommand
             if ($response->isAiValid()) {
                 $ai->setValid(true);
 
-                $this->io->text("<info>{$ai->getPath()}</info> Successfuly synced !");
+                $this->io->text("<info>{$ai->getPath()}</info> - IA synchronisée");
             } else {
                 $ai->setValid(false);
                 $ai->setError($response->getAiError());
@@ -211,7 +211,7 @@ class ScriptsWatchCommand extends ScriptsCommand
 
                 $errorAi = $this->fileRegistry->findAiById($error->getErroredAiId());
 
-                $this->io->text("<info>{$ai->getPath()}</info> Synced but is invalid du to error in <error>{$errorAi->getPath()}</error> line {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
+                $this->io->text("<info>{$ai->getPath()}</info> - IA synchronisée mais invalide <error>{$errorAi->getPath()}</error> ligne {$error->getLine()} \u{02023} ({$error->getCharacter()}) {$error->getError()}");
             }
 
             $this->fileRegistry->moveAi($ai, $path);
@@ -237,7 +237,7 @@ class ScriptsWatchCommand extends ScriptsCommand
         $this->folderApi->rename($folder->getId(), $folder->getName())->wait();
         $this->fileRegistry->pushFolder($folder);
 
-        $this->io->text("<info>{$folder->getPath()}</info> Successfully created !");
+        $this->io->text("<info>{$folder->getPath()}</info> - Dossier créé");
     }
 
     /**
@@ -253,7 +253,7 @@ class ScriptsWatchCommand extends ScriptsCommand
         $this->aiApi->rename($ai->getId(), $ai->getName())->wait();
         $this->fileRegistry->moveAi($ai, $fromPath);
 
-        $this->io->text("<info>{$ai->getPath()}</info> Successfully renamed !");
+        $this->io->text("<info>{$ai->getPath()}</info> - IA renommée");
     }
 
     /**
@@ -269,7 +269,7 @@ class ScriptsWatchCommand extends ScriptsCommand
         $this->folderApi->rename($folder->getId(), $folder->getName())->wait();
         $this->fileRegistry->moveFolder($folder, $fromPath);
 
-        $this->io->text("<info>{$folder->getPath()}</info> Successfully renamed !");
+        $this->io->text("<info>{$folder->getPath()}</info> - Dossier renommé");
     }
 
     /**
@@ -291,7 +291,7 @@ class ScriptsWatchCommand extends ScriptsCommand
         $this->aiApi->changeFolder($ai->getId(), $folder->getId())->wait();
         $this->fileRegistry->moveAi($ai, $fromPath);
 
-        $this->io->text("<info>{$ai->getPath()}</info> Successfully moved !");
+        $this->io->text("<info>{$ai->getPath()}</info> - IA déplacée");
     }
 
     /**
@@ -310,7 +310,7 @@ class ScriptsWatchCommand extends ScriptsCommand
 
         $this->fileRegistry->moveFolder($folder, $folderPath);
 
-        $this->io->text("<info>{$folder->getPath()}</info> Successfully moved !");
+        $this->io->text("<info>{$folder->getPath()}</info> - Dossier déplacé");
     }
 
     /**
@@ -331,7 +331,7 @@ class ScriptsWatchCommand extends ScriptsCommand
                     $this->folderApi->delete($folder->getId())->wait();
                     $this->fileRegistry->deleteFolder($folder);
 
-                    $this->io->text("<error>{$folder->getPath()}</error> Successfully deleted !");
+                    $this->io->text("<error>{$folder->getPath()}</error> - Dossier supprimé");
                 }
 
                 $ai = $this->fileRegistry->fetchAi($path);
@@ -339,7 +339,7 @@ class ScriptsWatchCommand extends ScriptsCommand
                 $this->aiApi->delete($ai->getId())->wait();
                 $this->fileRegistry->deleteAi($ai);
 
-                $this->io->text("<error>{$ai->getPath()}</error> Successfully deleted !");
+                $this->io->text("<error>{$ai->getPath()}</error> - IA supprimé");
             }
 
             $this->scheduledDeletions = [];
@@ -358,7 +358,7 @@ class ScriptsWatchCommand extends ScriptsCommand
             $updatesCount = count($this->scheduledUpdates);
 
             if ($deletionsCount != $updatesCount) {
-                throw new \Exception('Something bad happened, please report what you did on github');
+                throw new \Exception('Something bad happened )=');
             }
 
             $fromPath = $this->scheduledDeletions[0];

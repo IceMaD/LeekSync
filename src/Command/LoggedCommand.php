@@ -54,24 +54,20 @@ abstract class LoggedCommand extends Command
 
         if ($envLogin && $envPassword) {
             try {
-                $login = $envLogin;
-                $password = $envPassword;
-
-                $token = $this->farmerApi->loginToken($login, $password)->wait()->getToken();
+                $token = $this->farmerApi->loginToken($envPassword, $envLogin)->wait()->getToken();
             } catch (RequestFailedException $exception) {
-                $this->io->error('The credentials provided in the .env are invalid');
-
+                $this->io->error('Les identifiants situés dans le fichier .env sont invalides');
                 die;
             }
         } else {
             do {
                 try {
-                    $login = $this->io->ask('Login', $login ?? $envLogin);
-                    $password = $this->io->askHidden('Password');
+                    $login = $this->io->ask('Identifiant', $login ?? $envLogin);
+                    $password = $this->io->askHidden('Mot de passe (masqué)');
 
                     $token = $this->farmerApi->loginToken($login, $password)->wait()->getToken();
                 } catch (\Exception $exception) {
-                    $this->io->error('Invalid credentials');
+                    $this->io->error('Identifiants invalides');
                 }
             } while (!$token);
         }
@@ -86,7 +82,7 @@ abstract class LoggedCommand extends Command
         try {
             return parent::run($input, $output);
         } catch (InvalidTokenException $exception) {
-            $this->io->error('Your connexion expired, please reconnect');
+            $this->io->error('Votre connexion a expiré, Veuillez vous reconnecter');
 
             die;
         }

@@ -32,8 +32,8 @@ class ScriptsFetchCommand extends ScriptsCommand
 
     protected function configure()
     {
-        $this->setDescription('Fetches scripts from your account')
-            ->addOption('force', 'f', InputOption::VALUE_NONE);
+        $this->setDescription('Récupère les scripts depuis le site LeekWars')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Ecrase les fichiers différents');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -67,13 +67,13 @@ class ScriptsFetchCommand extends ScriptsCommand
 
         if (!empty($ais['conflicts'])) {
             $this->io->error([
-                'Some scripts had conflicts.',
-                'Fix them manually or use --force to override local data',
+                'Il y a déjà des scripts présents sur votre ordinateur et les contenus différent',
+                'Corrigez les manuellement ou rajoutez "--force" pour écraser les fichiers locaux',
             ]);
 
             return;
         }
 
-        $this->io->success('You have a successfully fetched all your scripts');
+        $this->io->success('Les fichiers ont bien été récupéré');
     }
 }

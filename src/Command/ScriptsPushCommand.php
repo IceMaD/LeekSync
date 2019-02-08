@@ -13,7 +13,7 @@ class ScriptsPushCommand extends ScriptsCommand
 
     protected function configure()
     {
-        $this->setDescription('Push scripts to your account');
+        $this->setDescription('Envoie les fichiers sur le site LeekWars');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -43,6 +43,6 @@ class ScriptsPushCommand extends ScriptsCommand
 
         unwrap($promises);
 
-        $this->io->success('You have a successfully pushed all your scripts');
+        $this->io->success('Les fichiers ont bien été envoyé sur le site LeekWars');
     }
 }
