@@ -12,7 +12,6 @@ use IceMaD\LeekWarsApiBundle\Response\Garden\GetLeekOpponentsResponse;
 use IceMaD\LeekWarsApiBundle\Response\Garden\StartSoloFightResponse;
 use IceMaD\LeekWarsApiBundle\Storage\TokenStorage;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
@@ -45,21 +44,7 @@ class FightSoloScriptsCommand extends LoggedCommand
 
     protected function configure()
     {
-        $this->setDescription('Launches your solo fights')
-            ->addOption(
-                'fights',
-                'f',
-                InputOption::VALUE_REQUIRED,
-                'Number of fights to launch (default: 10)',
-                5
-            )
-            ->addOption(
-                'strategy',
-                's',
-                InputOption::VALUE_REQUIRED,
-                'Strategy to choose the opponent manual|talent|level (default: manual)',
-                self::STRATEGY_MANUAL
-            );
+        $this->setDescription('Lancer des combats de poireau solo');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -69,11 +54,13 @@ class FightSoloScriptsCommand extends LoggedCommand
 
         $farmerFights = $farmer->getFights();
 
-        $this->io->title("Welcome to the solo fight command, you have $farmerFights fights to do today");
+        $this->io->title("Bienvenue dans la commande pour lancer des combat de poireau solo, vous avez $farmerFights combats restant");
 
+        $strategy = $this->askWhichStrategy();
+        $fightsCount = $this->askFightCount();
         $leek = $this->askWhichLeek($farmer);
 
-        for ($fights = 0; $fights < min($farmerFights, (int) $input->getOption('fights')); ++$fights) {
+        for ($fights = 0; $fights < min($farmerFights, $fightsCount); ++$fights) {
             $this->io->section('Fight #'.($fights + 1));
 
             /** @var GetLeekOpponentsResponse $garden */
@@ -82,7 +69,7 @@ class FightSoloScriptsCommand extends LoggedCommand
             $sessionId = $garden->getPhpSessId();
             $opponents = $garden->getOpponents();
 
-            $opponent = $this->askWhichOpponent($opponents, $this->getStrategy($input));
+            $opponent = $this->askWhichOpponent($opponents, $strategy);
 
             /** @var StartSoloFightResponse $gardenFightResponse */
             $gardenFightResponse = $this->gardenApi->startSoloFight($leek->getId(), $opponent->getId(), $sessionId)->wait();
@@ -106,19 +93,19 @@ class FightSoloScriptsCommand extends LoggedCommand
             $this->io->progressFinish();
 
             if (!$fight->isEnded()) {
-                $this->io->error('Fight did not end. The server seems to lag, please try again later');
+                $this->io->error('Le combat n\'est toujours pas terminé. Il semblerait que le serveur lag, Essayez de relancer vos combats plus tard');
                 die;
             }
 
             switch ($fight->getWinner()) {
                 case 0:
-                    $this->io->block("Draw with {$opponent->getName()}", 'OK', 'fg=black;bg=cyan', ' ', true);
+                    $this->io->block("Egalité avec {$opponent->getName()}", "\u{2012}", 'fg=black;bg=cyan', ' ', true);
                     break;
                 case 1:
-                    $this->io->success("You won against {$opponent->getName()}");
+                    $this->io->block("Vous avez gagné contre {$opponent->getName()}", "\u{2713}", 'fg=black;bg=green', ' ', true);
                     break;
                 case 2:
-                    $this->io->error("You lost against {$opponent->getName()}");
+                    $this->io->block("Vous avez perdu contre {$opponent->getName()}", "\u{2715}", 'fg=black;bg=red', ' ', true);
                     break;
             }
         }
@@ -132,7 +119,7 @@ class FightSoloScriptsCommand extends LoggedCommand
             $leeks[$leek->getName()] = $leek;
         }
 
-        $leekChoice = new ChoiceQuestion('Which leek do you want to use ?', array_map(function (Leek $leek) {
+        $leekChoice = new ChoiceQuestion('Quel poireau voulez vous utiliser ?', array_map(function (Leek $leek) {
             return "{$leek->getName()} ({$leek->getLevel()})";
         }, $leeks));
 
@@ -152,7 +139,7 @@ class FightSoloScriptsCommand extends LoggedCommand
                 return [$leek->getName(), $leek->getLevel(), $leek->getTalent()];
             }, $leeks));
 
-            $leekChoice = new ChoiceQuestion('Which leek do you want to use ?', array_map(function (Leek $leek) {
+            $leekChoice = new ChoiceQuestion('Quel poireau voulez vous affronter ?', array_map(function (Leek $leek) {
                 return "{$leek->getName()}";
             }, $leeks));
 
@@ -176,16 +163,23 @@ class FightSoloScriptsCommand extends LoggedCommand
         });
     }
 
-    private function getStrategy(InputInterface $input)
+    private function askWhichStrategy(): string
     {
-        switch ($input->getOption('strategy')) {
-            case self::STRATEGY_LEVEL:
-                return self::STRATEGY_LEVEL;
-            case self::STRATEGY_TALENT:
-                return self::STRATEGY_TALENT;
-            case self::STRATEGY_MANUAL:
-            default:
-                return self::STRATEGY_MANUAL;
-        }
+        return $this->io->askQuestion(new ChoiceQuestion('Quelle stratégie de choix d\'adversaire voulez vous utiliser ?', [
+            self::STRATEGY_MANUAL => 'Manuel - Choisir l\'adversaire manuellement',
+            self::STRATEGY_TALENT => 'Talent - Choisir automatiquement le poireau qui a le moins de talent',
+            self::STRATEGY_LEVEL => 'Niveau - Choisir automatiquement le poireau qui a le plus petit niveau',
+        ]));
+    }
+
+    private function askFightCount(): int
+    {
+        return (int) $this->io->ask('Combien de combats voulez vous faire ?', 1, function (string $input) {
+            if (!preg_match('/^\d+$/', $input)) {
+                throw new \RuntimeException('Veuillez saisir un numéro');
+            }
+
+            return $input;
+        });
     }
 }
