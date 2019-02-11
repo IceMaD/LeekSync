@@ -3,4 +3,4 @@ title: Introduction
 type: docs
 ---
 
-# Bienvenue sur le wiki de LeekTools
+# Bienvenue sur le wiki de LeekTools !
