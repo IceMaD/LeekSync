@@ -1,0 +1,12 @@
+title: Hugo Book
+theme: hugo-book
+disableKinds: ["taxonomy", "taxonomyTerm"]
+
+# Book configuration
+disablePathToLower: true
+enableGitInfo: true
+
+params:
+    BookShowToC: false
+    BookMenuBundle: /menu
+    BookSection: docs
