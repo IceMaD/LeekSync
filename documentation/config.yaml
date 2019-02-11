@@ -1,3 +1,4 @@
+baseURL: https://example.com
 title: Hugo Book
 theme: hugo-book
 disableKinds: ["taxonomy", "taxonomyTerm"]
