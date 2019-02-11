@@ -54,7 +54,7 @@ abstract class LoggedCommand extends Command
 
         if ($envLogin && $envPassword) {
             try {
-                $token = $this->farmerApi->loginToken($envPassword, $envLogin)->wait()->getToken();
+                $token = $this->farmerApi->loginToken($envLogin, $envPassword)->wait()->getToken();
             } catch (RequestFailedException $exception) {
                 $this->io->error('Les identifiants situés dans le fichier .env sont invalides');
                 die;
