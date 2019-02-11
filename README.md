@@ -4,4 +4,4 @@ Application en ligne de commande pour synchroniser les fichiers IA locaux et [Le
 
 ## Documentation
 
-http://leektools.torchpad.com/
+https://leektools.netlify.com/
