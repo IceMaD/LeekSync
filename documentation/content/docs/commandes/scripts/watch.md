@@ -16,15 +16,15 @@ bin/console scripts:watch
 
 Une fois que les [identifiants rentrés]({{< ref "/docs/installation/personalisation.md" >}}), ce message devrait apparaitre:
 
-![Observateur](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/3GwrU7tvRuzSt4FXcduY_watch-start.png)
+![Observateur](/scripts-watch-start.png)
 
 Commencer à éditer les fichiers d'IA, sauvegarder et ... tadaa!
 
-![Réussite de la synchronisation](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/2odlcKpvS1CLr2qCMHVY_sync-success.png)
+![Réussite de la synchronisation](/scripts-sync-success.png)
 
 Si le code n'est pas valide, le résultat le montrera
 
-![Echec de la synchronisation](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/jcbJGT4NQ2SBBlb3xTYk_sync-failure.png)
+![Echec de la synchronisation](/scripts-sync-failure.png)
 
 Ici, il me manque un ";" à la ligne 9 (29 ème caractère)
 

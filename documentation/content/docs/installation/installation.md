@@ -39,7 +39,7 @@ On va installer Linux sur windows, et ça prend du temps (mais pas d'inquiétude
 
 Commencer par installer bash pour windows en suivant ce [Tutoriel](https://korben.info/installer-shell-bash-linux-windows-10.html) jusqu'à avoir Ubuntu sur Windows.
 
-![Ubuntu sur windows](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/MIh8Xr9R2eryG7TL8CdZ_windows-ubuntu.png)
+![Ubuntu sur windows](/setup-windows-ubuntu.png)
 
 Ensuite executer les commandes suivantes pour être sur qu'on est à jour et installer ce qui manque ainsi que l'outils :
 

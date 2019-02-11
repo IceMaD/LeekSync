@@ -8,7 +8,7 @@ title: "Personnalisation"
 
 Votre identifian et votre mot de passe vous seront demandés à chaque commande.
 
-![Aperçu du login](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/AJccVKk6RW5XrVPkf5mi_login-prompt.png)
+![Aperçu du login](/login-prompt.png)
 
 > Ceux-ci ne sont pas stockés, mais si vous ne me faites pas confiance (et ne faites jamais confiance à personne sur Internet), vous pouvez consulter mon code.
 >

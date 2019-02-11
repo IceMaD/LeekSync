@@ -1,13 +1,17 @@
 baseURL: https://leektools.netlify.com/
-title: Hugo Book
+title: Wiki de LeekTools
 theme: hugo-book
-disableKinds: ["taxonomy", "taxonomyTerm"]
+defaultContentLanguage: fr
 
 # Book configuration
 disablePathToLower: true
-enableGitInfo: true
+enableGitInfo: false
 
 params:
     BookShowToC: false
     BookMenuBundle: /menu
     BookSection: docs
+
+languages:
+    fr:
+        title: Wiki de LeekTools

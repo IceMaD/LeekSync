@@ -29,16 +29,16 @@ Le nombre de combat à lancer
 
 En mode manuel, à chaque combat, la commande vous demandera de choisir l'adversaire. Ce mode est équivalent au site mais permet tout de même d'enchaîner les combats assee rapidement.
 
-![Choix](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/PCXmpqlTTUaYWZhWljkP_Choix.png)
+![Choix](/fights-solo-choice.png)
 
 ## Le mode automatique (talent ou niveau)
 
 Les combats vont s'enchainer en attendant que le combat précédant soit fini afin déviter de boucher la file d'attente.
 
-![Combats](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/mAMauhLKRPaS1cNJFzHc_combats.png)
+![Combats](/fights-solo-result.png)
 
 Au cas où votre poireau se retrouve coincé dans une file, la commande s'arrêtera avec le message d'erreur suivant:
 
-![Timeout](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/11006/dwHRmInHTAGB6F7fCc2F_timeout.png)
+![Timeout](/fights-solo-timeout.png)
 
 
