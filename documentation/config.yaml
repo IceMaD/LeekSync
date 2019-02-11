@@ -3,9 +3,7 @@ title: Wiki de LeekTools
 theme: hugo-book
 defaultContentLanguage: fr
 
-# Book configuration
 disablePathToLower: true
-enableGitInfo: false
 
 params:
     BookShowToC: false
