@@ -1,7 +1,5 @@
 @import "../themes/hugo-book/assets/book";
 
-$color-cloud: #ecf0f1;
-
 $fui-turquoise: #1abc9c;
 $fui-green-sea: #16a085;
 $fui-sun-flower: #f1c40f;
@@ -43,10 +41,30 @@ $fui-colors: (
   $fui-midnight-blue,
 );
 
-$color-brand: nth($fui-colors, random(length($fui-colors)));
+$color-brand: $fui-belize-hole;
+
+html, body, .container, .book-page {
+  max-width: 100vw;
+  min-width: 0;
+  margin: auto;
+}
+
+.markdown {
+  padding: 1rem;
+  max-width: 60rem;
+
+  @media screen and (min-width: 689px) {
+    padding-top: 3rem;
+  }
+
+  h1 {
+    color: $color-brand;
+  }
+}
 
 .book-menu nav {
-  box-shadow: inset -1px 0 0 0 $color-cloud;
+  box-shadow: inset -1px 0 0 0 $fui-clouds;
+  background-color: mix($fui-clouds, white, 30%);
 
   & > ul > li {
     & > a,
