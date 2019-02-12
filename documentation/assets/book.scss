@@ -1,0 +1,36 @@
+@import "../themes/hugo-book/assets/book";
+
+$color-cloud: #ecf0f1;
+$color-emerald: #2ecc71;
+$color-nephretis: #27ae60;
+
+$color-brand: $color-nephretis;
+
+.book-menu nav {
+  box-shadow: inset -1px 0 0 0 $color-cloud;
+
+  > ul > li {
+    > a, > p {
+      color: $color-brand;
+    }
+  }
+}
+
+.book-brand {
+  background-color: $color-brand;
+  margin: -1rem -1rem 0 -1rem;
+  padding: 1rem;
+
+  @media screen and (min-width: 80rem) {
+    margin: -2rem -1rem 0 -1rem;
+  }
+
+  a {
+    font-weight: bold;
+    color: white;
+  }
+}
+
+img {
+  max-width: 100%;
+}

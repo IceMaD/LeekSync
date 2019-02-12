@@ -16,3 +16,4 @@
 ###< friendsofphp/php-cs-fixer ###
 
 documentation/public/*
+documentation/resources/*
