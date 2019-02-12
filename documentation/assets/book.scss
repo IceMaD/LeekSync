@@ -1,16 +1,56 @@
 @import "../themes/hugo-book/assets/book";
 
 $color-cloud: #ecf0f1;
-$color-emerald: #2ecc71;
-$color-nephretis: #27ae60;
 
-$color-brand: $color-nephretis;
+$fui-turquoise: #1abc9c;
+$fui-green-sea: #16a085;
+$fui-sun-flower: #f1c40f;
+$fui-orange: #f39c12;
+$fui-emerald: #2ecc71;
+$fui-nephritis: #27ae60;
+$fui-carrot: #e67e22;
+$fui-pumpkin: #d35400;
+$fui-peter-river: #3498db;
+$fui-belize-hole: #2980b9;
+$fui-alizarin: #e74c3c;
+$fui-pomegranate: #c0392b;
+$fui-amathyst: #9b59b6;
+$fui-wysteria: #8e44ad;
+$fui-wet-asphalt: #34495e;
+$fui-midnight-blue: #2c3e50;
+
+$fui-clouds: #ecf0f1;
+$fui-silver: #bdc3c7;
+$fui-concrete: #95a5a6;
+$fui-asbestos: #7f8c8d;
+
+$fui-colors: (
+  $fui-turquoise,
+  $fui-green-sea,
+  $fui-sun-flower,
+  $fui-orange,
+  $fui-emerald,
+  $fui-nephritis,
+  $fui-carrot,
+  $fui-pumpkin,
+  $fui-peter-river,
+  $fui-belize-hole,
+  $fui-alizarin,
+  $fui-pomegranate,
+  $fui-amathyst,
+  $fui-wysteria,
+  $fui-wet-asphalt,
+  $fui-midnight-blue,
+);
+
+$color-brand: nth($fui-colors, random(length($fui-colors)));
 
 .book-menu nav {
   box-shadow: inset -1px 0 0 0 $color-cloud;
 
-  > ul > li {
-    > a, > p {
+  & > ul > li {
+    & > a,
+    & > p {
       color: $color-brand;
     }
   }
