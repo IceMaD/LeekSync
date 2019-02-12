@@ -60,6 +60,11 @@ html, body, .container, .book-page {
   h1 {
     color: $color-brand;
   }
+
+  a {
+    color: $color-brand;
+    font-weight: 600;
+  }
 }
 
 .book-menu nav {
