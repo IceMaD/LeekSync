@@ -4,7 +4,7 @@ title: "Synchronisation automatique"
 
 # Synchronisation automatique
 
-### Lancer l'observateur
+## Lancer l'observateur
 
 L'observateur est un script qui va observer le dossier scripts sur le PC et répliquer tous les changements qu'il détecte sur le site de LeekWars.
 
@@ -28,9 +28,9 @@ Si le code n'est pas valide, le résultat le montrera
 
 Ici, il me manque un ";" à la ligne 9 (29 ème caractère)
 
-### Opérations prises en compte
+## Opérations prises en compte
 
-Les opérations suivantes sont automatiquement synchronisées vers le site :
+### Les opérations suivantes sont automatiquement synchronisées vers le site :s
 
 - Création d'une IA
 - Suppression d'une IA
@@ -43,7 +43,7 @@ Les opérations suivantes sont automatiquement synchronisées vers le site :
 - Modification du nom d'un dossier
 - Déplacement d'un dossier dans un autre dossier
 
-Les opérations suivantes **NE SONT PAS** gérés (et feront planter le script) :
+### Les opérations suivantes **NE SONT PAS** gérés (et feront planter le script) :
 
 - Déplacement de plusieurs dossiers d'un coup dans un autre dossier
 - Changer l'extension d'une IA pendant que l'observateur tourne
