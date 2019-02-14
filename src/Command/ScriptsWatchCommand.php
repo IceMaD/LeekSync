@@ -40,17 +40,12 @@ class ScriptsWatchCommand extends ScriptsCommand
     /**
      * @var Pool
      */
-    private $deletionsPool;
+    private $pool;
 
     /**
      * @var string[]
      */
     private $scheduledDeletions;
-
-    /**
-     * @var Pool
-     */
-    private $updatesPool;
 
     /**
      * @var string[]
@@ -83,9 +78,7 @@ class ScriptsWatchCommand extends ScriptsCommand
         $this->folderApi = $folderApi;
         $this->watcher = $watcher;
 
-        // @TODO Fix Pool design problem. Lib can not have multiple pool
-        $this->deletionsPool = Pool::create();
-        $this->updatesPool = Pool::create();
+        $this->pool = Pool::create();
 
         $this->extension = getenv('APP_FILE_EXTENSION');
         $this->scriptsDir = $scriptsDir;
@@ -101,9 +94,9 @@ class ScriptsWatchCommand extends ScriptsCommand
         $listener = $this->watcher->watch();
 
         $listener->onDelete(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
-            if ($this->deletionsPool->isRunning()) {
+            if ($this->pool->isRunning()) {
                 $this->logIfVerbose("Reschedule deletion - $path");
-                $this->deletionsPool->stop();
+                $this->pool->stop();
 
                 $this->scheduleAiDeletion($path);
             } else {
@@ -113,13 +106,8 @@ class ScriptsWatchCommand extends ScriptsCommand
         });
 
         $listener->onCreate(function (/* @noinspection PhpUnusedParameterInspection */ ResourceInterface $resource, string $path) {
-            if ($this->updatesPool->isRunning()) {
-                $this->updatesPool->stop();
-
-                $this->logIfVerbose("Reschedule update - $path");
-                $this->scheduleUnknownUpdate($path);
-            } elseif ($this->deletionsPool->isRunning()) {
-                $this->deletionsPool->stop();
+            if ($this->pool->isRunning()) {
+                $this->pool->stop();
 
                 $this->logIfVerbose("Schedule update - $path");
                 $this->scheduleUnknownUpdate($path);
@@ -319,7 +307,7 @@ class ScriptsWatchCommand extends ScriptsCommand
     private function scheduleAiDeletion(string $path)
     {
         $this->scheduledDeletions[] = $path;
-        $this->deletionsPool = Pool::create();
+        $this->pool = Pool::create();
 
         $deletion = new Deferred(function () {
             foreach ($this->scheduledDeletions as $path) {
@@ -345,13 +333,13 @@ class ScriptsWatchCommand extends ScriptsCommand
             $this->scheduledDeletions = [];
         });
 
-        $this->deletionsPool->add($deletion->getProcess());
+        $this->pool->add($deletion->getProcess());
     }
 
     private function scheduleUnknownUpdate(string $path)
     {
         $this->scheduledUpdates[] = $path;
-        $this->updatesPool = Pool::create();
+        $this->pool = Pool::create();
 
         $update = new Deferred(function () {
             $deletionsCount = count($this->scheduledDeletions);
@@ -389,7 +377,7 @@ class ScriptsWatchCommand extends ScriptsCommand
             $this->scheduledUpdates = [];
         });
 
-        $this->updatesPool->add($update->getProcess());
+        $this->pool->add($update->getProcess());
     }
 
     /**
