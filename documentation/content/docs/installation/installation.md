@@ -24,7 +24,7 @@ sudo sudo mv composer.phar /usr/local/bin/composer
 
 Installation de LeekTools
 ```bash
-git sudo clone https://github.com/IceMaD/LeekTools.git
+git clone https://github.com/IceMaD/LeekTools.git
 cd LeekTools
 composer install
 ```
@@ -61,7 +61,7 @@ sudo sudo mv composer.phar /usr/local/bin/composer
 
 Installation de LeekTools
 ```bash
-git sudo clone https://github.com/IceMaD/LeekTools.git
+git clone https://github.com/IceMaD/LeekTools.git
 cd LeekTools
 composer install
 ```
